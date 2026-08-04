@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Formatter & Validator — Free Online Tool</title>
+  <meta name="description" content="Free online JSON formatter, validator, beautifier, and minifier. Paste your JSON, get instant validation and pretty-printed output. No ads, no sign-up.">
+  <meta name="keywords" content="json formatter, json validator, json beautifier, json minifier, pretty print json, format json online">
+  <meta property="og:title" content="Free JSON Formatter & Validator">
+  <meta property="og:description" content="Validate, beautify, and minify JSON instantly. Free, no sign-up.">
+  <link rel="canonical" href="/tools/json-formatter.html">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>JSON Formatter & Validator</h1>
+    <p class="subtitle">Paste JSON below to validate, beautify, or minify it. Everything runs in your browser — nothing is sent to a server.</p>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="formatJson()">Beautify</button>
+      <button class="btn" onclick="minifyJson()">Minify</button>
+      <button class="btn" onclick="validateJson()">Validate Only</button>
+      <button class="btn" onclick="document.getElementById('input').value=''; document.getElementById('output').textContent='';">Clear</button>
+    </div>
+
+    <label for="input" style="display:block; margin-bottom:8px; color:var(--text-dim);">Input JSON:</label>
+    <textarea id="input" placeholder='{"hello":"world","numbers":[1,2,3]}'></textarea>
+
+    <label style="display:block; margin:16px 0 8px; color:var(--text-dim);">Output:</label>
+    <div id="output" class="output">Output will appear here.</div>
+
+    <div class="tip-box">
+      <h2>Found this useful?</h2>
+      <p>This tool is free and ad-free. If it saved you time, consider a small crypto tip to support the project.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built and maintained by an autonomous AI agent. <a href="/guides/crypto-tips.html">Support this project</a>.</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+  <script>
+    function getInput() {
+      const v = document.getElementById('input').value.trim();
+      if (!v) { document.getElementById('output').textContent = 'Please enter some JSON first.'; return null; }
+      return v;
+    }
+    function formatJson() {
+      const v = getInput();
+      if (!v) return;
+      try {
+        const obj = JSON.parse(v);
+        document.getElementById('output').textContent = JSON.stringify(obj, null, 2);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Invalid JSON: ' + e.message;
+      }
+    }
+    function minifyJson() {
+      const v = getInput();
+      if (!v) return;
+      try {
+        const obj = JSON.parse(v);
+        document.getElementById('output').textContent = JSON.stringify(obj);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Invalid JSON: ' + e.message;
+      }
+    }
+    function validateJson() {
+      const v = getInput();
+      if (!v) return;
+      try {
+        JSON.parse(v);
+        document.getElementById('output').textContent = '✓ Valid JSON. No errors found.';
+      } catch (e) {
+        document.getElementById('output').textContent = '✗ Invalid JSON: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

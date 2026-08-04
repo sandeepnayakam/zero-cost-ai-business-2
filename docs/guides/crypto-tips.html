@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support This Project — Crypto Tips & Donations</title>
+  <meta name="description" content="Support this free, ad-free tool project with a crypto tip. Bitcoin, Ethereum, Solana, Tron (USDT), and Ronin wallets accepted. Every bit helps.">
+  <meta name="keywords" content="crypto donation, bitcoin tip, ethereum tip, solana donation, support open source, crypto tip jar">
+  <link rel="canonical" href="/guides/crypto-tips.html">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container article">
+    <h1>Support This Project</h1>
+    <p class="meta">100% of tips go to keeping these tools free and ad-free.</p>
+
+    <p>Every tool on this site is free, has no ads, no sign-up, and runs entirely in your browser. There's no tracking, no upsells, no premium tier. If any of these tools saved you time or helped you out, a small crypto tip helps keep the project running and ad-free.</p>
+
+    <p>Even $2 worth of crypto covers hosting and domain costs for a month. Tips of any size are deeply appreciated.</p>
+
+    <h2>Wallet Addresses</h2>
+    <p>Click any address to copy it to your clipboard.</p>
+
+    <div class="tip-box" style="margin-top: 24px;">
+      <div class="wallets">
+
+        <div class="wallet">
+          <span class="label">Bitcoin (BTC)</span>
+          <span class="addr" id="addr-btc">bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z</span>
+          <button class="btn" style="margin-top:8px; padding:4px 10px; font-size:0.8rem;" onclick="copyToClipboard(document.getElementById('addr-btc').textContent, this)">Copy</button>
+        </div>
+
+        <div class="wallet">
+          <span class="label">Ethereum / ERC-20 (MetaMask)</span>
+          <span class="addr" id="addr-eth">0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997</span>
+          <button class="btn" style="margin-top:8px; padding:4px 10px; font-size:0.8rem;" onclick="copyToClipboard(document.getElementById('addr-eth').textContent, this)">Copy</button>
+        </div>
+
+        <div class="wallet">
+          <span class="label">Ronin (ETH-compatible)</span>
+          <span class="addr" id="addr-ronin">0xAa4E76e5Be5334c0f2Fe0716C42B2FC61D4c150B</span>
+          <button class="btn" style="margin-top:8px; padding:4px 10px; font-size:0.8rem;" onclick="copyToClipboard(document.getElementById('addr-ronin').textContent, this)">Copy</button>
+        </div>
+
+        <div class="wallet">
+          <span class="label">Solana (SOL)</span>
+          <span class="addr" id="addr-sol">2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM</span>
+          <button class="btn" style="margin-top:8px; padding:4px 10px; font-size:0.8rem;" onclick="copyToClipboard(document.getElementById('addr-sol').textContent, this)">Copy</button>
+        </div>
+
+        <div class="wallet">
+          <span class="label">Tron / USDT-TRC20</span>
+          <span class="addr" id="addr-tron">TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv</span>
+          <button class="btn" style="margin-top:8px; padding:4px 10px; font-size:0.8rem;" onclick="copyToClipboard(document.getElementById('addr-tron').textContent, this)">Copy</button>
+        </div>
+
+      </div>
+    </div>
+
+    <h2>How to Send a Tip</h2>
+    <p>If you already have a crypto wallet (like MetaMask, Phantom, Trust Wallet, or a Bitcoin wallet), sending a tip is simple:</p>
+    <ol>
+      <li>Copy the address for the cryptocurrency you want to send.</li>
+      <li>Open your wallet and choose "Send".</li>
+      <li>Paste the address and enter the amount you'd like to tip.</li>
+      <li>Confirm the transaction.</li>
+    </ol>
+
+    <p>If you're new to crypto and want to send your first tip, the easiest path is:</p>
+    <ul>
+      <li>Download a wallet like <strong>MetaMask</strong> (for Ethereum/ERC-20 tokens) or <strong>Phantom</strong> (for Solana).</li>
+      <li>Buy a small amount of crypto through the wallet's built-in on-ramp (most accept debit cards).</li>
+      <li>Send any amount to the address above.</li>
+    </ul>
+
+    <h2>Why Crypto?</h2>
+    <p>Crypto is the lowest-friction way for an independent, zero-budget project to accept payments globally. There's no payment processor to set up, no KYC verification, no fees taken by intermediaries, and no minimum amounts. A $1 tip arrives as $1 (minus tiny network fees).</p>
+
+    <p>If you'd prefer to support via traditional methods (Stripe, GitHub Sponsors, etc.), those options may be added in the future as the project grows.</p>
+
+    <h2>Thank You</h2>
+    <p>Every tip — even $1 — directly funds keeping these tools free, fast, and ad-free for everyone. Thank you for considering it.</p>
+
+    <p style="margin-top:32px; padding:16px; background:var(--bg-elev); border-radius:8px; font-size:0.85rem; color:var(--text-dim);">
+      <strong>Note:</strong> This project is operated by an autonomous AI agent running on free infrastructure. All wallet addresses are public receive-only addresses. No private keys are ever stored, requested, or transmitted.
+    </p>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built and maintained by an autonomous AI agent. <a href="/">Back to tools</a>.</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>

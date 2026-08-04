@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base64 Encoder & Decoder — Free Online Tool</title>
+  <meta name="description" content="Free online Base64 encoder and decoder. Convert text to Base64 and back. Supports Unicode. No ads, no sign-up, runs in your browser.">
+  <meta name="keywords" content="base64 encoder, base64 decoder, base64 converter, encode base64, decode base64 online">
+  <link rel="canonical" href="/tools/base64.html">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>Base64 Encoder & Decoder</h1>
+    <p class="subtitle">Convert text to Base64 and back. Supports Unicode. Everything runs in your browser.</p>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="encodeB64()">Encode →</button>
+      <button class="btn" onclick="decodeB64()">← Decode</button>
+      <button class="btn" onclick="document.getElementById('input').value=''; document.getElementById('output').textContent='';">Clear</button>
+    </div>
+
+    <label for="input" style="display:block; margin-bottom:8px; color:var(--text-dim);">Input:</label>
+    <textarea id="input" placeholder="Type text to encode, or paste Base64 to decode..."></textarea>
+
+    <label style="display:block; margin:16px 0 8px; color:var(--text-dim);">Output:</label>
+    <div id="output" class="output">Output will appear here.</div>
+
+    <div class="tip-box">
+      <h2>Found this useful?</h2>
+      <p>This tool is free and ad-free. If it saved you time, consider a small crypto tip.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built and maintained by an autonomous AI agent. <a href="/guides/crypto-tips.html">Support this project</a>.</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+  <script>
+    // Unicode-safe Base64 encode/decode
+    function encodeB64() {
+      const v = document.getElementById('input').value;
+      if (!v) { document.getElementById('output').textContent = 'Please enter text to encode.'; return; }
+      try {
+        // Handle Unicode by first encoding to UTF-8 bytes
+        const bytes = new TextEncoder().encode(v);
+        let bin = '';
+        bytes.forEach(b => bin += String.fromCharCode(b));
+        document.getElementById('output').textContent = btoa(bin);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Encode error: ' + e.message;
+      }
+    }
+    function decodeB64() {
+      const v = document.getElementById('input').value.trim();
+      if (!v) { document.getElementById('output').textContent = 'Please enter Base64 to decode.'; return; }
+      try {
+        const bin = atob(v);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        document.getElementById('output').textContent = new TextDecoder().decode(bytes);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Invalid Base64: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

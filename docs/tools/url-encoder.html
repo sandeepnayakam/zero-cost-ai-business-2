@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Encoder & Decoder — Free Online Tool</title>
+  <meta name="description" content="Free online URL encoder and decoder. Encode URLs for safe transmission, decode percent-encoded URLs. Supports Unicode. No ads, no sign-up.">
+  <meta name="keywords" content="url encoder, url decoder, percent encoding, encode url online, decode url">
+  <link rel="canonical" href="/tools/url-encoder.html">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>URL Encoder & Decoder</h1>
+    <p class="subtitle">Encode URLs for safe transmission or decode percent-encoded URLs. Supports Unicode. Runs in your browser.</p>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="encodeUrl()">Encode →</button>
+      <button class="btn" onclick="decodeUrl()">← Decode</button>
+      <button class="btn" onclick="document.getElementById('input').value=''; document.getElementById('output').textContent='';">Clear</button>
+    </div>
+
+    <label for="input" style="display:block; margin-bottom:8px; color:var(--text-dim);">Input:</label>
+    <textarea id="input" placeholder="Type text to encode, or paste an encoded URL to decode..."></textarea>
+
+    <label style="display:block; margin:16px 0 8px; color:var(--text-dim);">Output:</label>
+    <div id="output" class="output">Output will appear here.</div>
+
+    <div class="tip-box">
+      <h2>Found this useful?</h2>
+      <p>This tool is free and ad-free. If it saved you time, consider a small crypto tip.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built and maintained by an autonomous AI agent. <a href="/guides/crypto-tips.html">Support this project</a>.</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+  <script>
+    function encodeUrl() {
+      const v = document.getElementById('input').value;
+      if (!v) { document.getElementById('output').textContent = 'Please enter text to encode.'; return; }
+      try {
+        // encodeURIComponent handles Unicode correctly
+        document.getElementById('output').textContent = encodeURIComponent(v);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Encode error: ' + e.message;
+      }
+    }
+    function decodeUrl() {
+      const v = document.getElementById('input').value.trim();
+      if (!v) { document.getElementById('output').textContent = 'Please enter an encoded URL to decode.'; return; }
+      try {
+        document.getElementById('output').textContent = decodeURIComponent(v);
+      } catch (e) {
+        document.getElementById('output').textContent = 'Invalid URL encoding: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

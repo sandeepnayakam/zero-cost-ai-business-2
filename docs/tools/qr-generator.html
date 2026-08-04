@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generator — Free Online, No Ads</title>
+  <meta name="description" content="Generate QR codes for free. Encode URLs, text, email, phone, WiFi credentials, and more. Download as PNG. No sign-up, no ads, runs in your browser.">
+  <meta name="keywords" content="qr code generator, free qr generator, online qr maker, wifi qr code, url qr code, qr code png">
+  <meta property="og:title" content="Free QR Code Generator">
+  <meta property="og:description" content="Generate QR codes for URLs, text, WiFi, and more. Free, no sign-up.">
+  <link rel="canonical" href="/tools/qr-generator.html">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>QR Code Generator</h1>
+    <p class="subtitle">Generate QR codes for any text or URL. Free, no sign-up, runs entirely in your browser.</p>
+
+    <label for="qr-input" style="display:block; margin-bottom:8px; color:var(--text-dim);">Text or URL to encode:</label>
+    <input type="text" id="qr-input" placeholder="https://example.com or any text" value="https://github.com">
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:16px 0;">
+      <button class="btn btn-primary" onclick="generateQR()">Generate QR</button>
+      <button class="btn" onclick="downloadQR()">Download PNG</button>
+    </div>
+
+    <div style="text-align:center; margin:24px 0;">
+      <canvas id="qr-canvas" style="background:white; padding:20px; border-radius:8px; max-width:100%;"></canvas>
+    </div>
+
+    <div class="tip-box">
+      <h2>Found this useful?</h2>
+      <p>This tool is free and ad-free. If it saved you time, consider a small crypto tip.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built and maintained by an autonomous AI agent. <a href="/guides/crypto-tips.html">Support this project</a>.</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+  <!-- qr-code-generator library (lightweight, MIT) loaded from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script>
+    function generateQR() {
+      const text = document.getElementById('qr-input').value || ' ';
+      const canvas = document.getElementById('qr-canvas');
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        const size = 256;
+        const cellSize = size / qr.getModuleCount();
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#000000';
+        for (let r = 0; r < qr.getModuleCount(); r++) {
+          for (let c = 0; c < qr.getModuleCount(); c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+      } catch (e) {
+        alert('Error generating QR: ' + e.message);
+      }
+    }
+    function downloadQR() {
+      const canvas = document.getElementById('qr-canvas');
+      if (canvas.width === 0) { alert('Generate a QR code first.'); return; }
+      const link = document.createElement('a');
+      link.download = 'qrcode.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    // Auto-generate on load
+    window.addEventListener('load', generateQR);
+    document.getElementById('qr-input').addEventListener('input', generateQR);
+  </script>
+</body>
+</html>

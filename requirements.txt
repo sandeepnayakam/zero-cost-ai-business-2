@@ -1,0 +1,4 @@
+# Dependencies for the Zero-Cost AI Business Agent
+# The agent itself only needs the Python standard library (urllib).
+# This file is for future expansion and to enable pip caching in CI.
+requests>=2.31.0

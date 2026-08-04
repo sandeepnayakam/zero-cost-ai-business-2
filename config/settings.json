@@ -1,0 +1,87 @@
+{
+  "agent": {
+    "name": "Zero-Cost AI Business Agent",
+    "version": "3.0.0",
+    "architecture": "agentic_loop",
+    "run_frequency_minutes": 30,
+    "max_steps_per_run": 5,
+    "max_content_size_kb": 200
+  },
+  "llm": {
+    "max_tokens": 3000,
+    "temperature": 0.7,
+    "max_retries_per_model": 1,
+    "retry_delay_seconds": 5,
+    "providers_priority": [
+      "groq",
+      "gemini",
+      "cerebras",
+      "sambanova",
+      "cloudflare",
+      "huggingface",
+      "openrouter"
+    ]
+  },
+  "budget": {
+    "resets_at": "UTC midnight",
+    "daily_limits": {
+      "groq": 14000,
+      "gemini": 1500,
+      "cerebras": 1000,
+      "sambanova": 500,
+      "cloudflare": 1000,
+      "huggingface": 500,
+      "openrouter": 50
+    },
+    "total_daily_capacity": 18550,
+    "max_daily_runs": 48,
+    "max_daily_llm_calls": 240,
+    "steps_by_budget_level": {
+      "full": 5,
+      "high": 4,
+      "medium": 3,
+      "low": 2,
+      "critical": 1,
+      "exhausted": 0
+    }
+  },
+  "security": {
+    "allowed_write_paths": ["docs/"],
+    "allowed_read_paths": ["docs/", "memory/"],
+    "forbidden_write_paths": [
+      "agent.py", "llm_client.py", "tools.py", "budget.py",
+      "requirements.txt", ".github/", "prompts/", "memory/",
+      "config/", "README.md", "LICENSE"
+    ],
+    "http_get_max_response_bytes": 2000,
+    "sandbox_external_content": true,
+    "prompt_injection_defense": true
+  },
+  "tools": [
+    "write_file",
+    "read_file",
+    "list_dir",
+    "delete_file",
+    "append_doc",
+    "http_get",
+    "log_experiment",
+    "update_experiment"
+  ],
+  "revenue": {
+    "primary_track": "crypto_tips",
+    "tracks": [
+      "crypto_tips",
+      "affiliate_marketing",
+      "digital_products_gumroad",
+      "github_sponsors",
+      "stripe_real_currency"
+    ],
+    "wallets": {
+      "bitcoin": "bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z",
+      "ethereum": "0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997",
+      "ronin": "0xAa4E76e5Be5334c0f2Fe0716C42B2FC61D4c150B",
+      "solana": "2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM",
+      "tron": "TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv"
+    }
+  }
+}

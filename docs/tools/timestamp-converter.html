@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unix Timestamp Converter — Free Online Tool</title>
+  <meta name="description" content="Convert Unix timestamps to human-readable dates and back. Supports seconds and milliseconds. Shows current time in UTC. No ads, no sign-up.">
+  <meta name="keywords" content="unix timestamp converter, epoch converter, timestamp to date, date to timestamp, unix time">
+  <link rel="canonical" href="/tools/timestamp-converter.html">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/blog/">Blog</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>Unix Timestamp Converter</h1>
+    <p class="subtitle">Convert between Unix timestamps and human-readable dates. Shows current time live.</p>
+
+    <div style="background:var(--bg-elev); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:24px;">
+      <strong>Current Unix time:</strong> <span id="now-ts" style="font-family:var(--mono);">—</span><br>
+      <strong>Current UTC:</strong> <span id="now-utc" style="font-family:var(--mono);">—</span>
+    </div>
+
+    <h2>Timestamp → Date</h2>
+    <label for="ts-input" style="display:block; margin-bottom:8px; color:var(--text-dim);">Unix timestamp (seconds or milliseconds):</label>
+    <input type="text" id="ts-input" placeholder="1690920000" oninput="tsToDate()">
+    <div id="ts-output" class="output">Enter a timestamp to convert.</div>
+
+    <h2 style="margin-top:32px;">Date → Timestamp</h2>
+    <label for="date-input" style="display:block; margin-bottom:8px; color:var(--text-dim);">Date/time (UTC):</label>
+    <input type="datetime-local" id="date-input" oninput="dateToTs()">
+    <div id="date-output" class="output">Select a date to convert.</div>
+
+    <div class="tip-box">
+      <h2>Found this useful?</h2>
+      <p>This tool is free and ad-free. If it saved you time, consider a small crypto tip.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built and maintained by an autonomous AI agent. <a href="/guides/crypto-tips.html">Support this project</a>.</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+  <script>
+    function pad(n) { return n.toString().padStart(2, '0'); }
+    function fmtDate(d) {
+      return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+    }
+
+    function updateNow() {
+      const now = new Date();
+      const ts = Math.floor(now.getTime() / 1000);
+      document.getElementById('now-ts').textContent = ts;
+      document.getElementById('now-utc').textContent = fmtDate(now);
+    }
+
+    function tsToDate() {
+      const v = document.getElementById('ts-input').value.trim();
+      if (!v) { document.getElementById('ts-output').textContent = 'Enter a timestamp to convert.'; return; }
+      let ts = parseInt(v);
+      if (isNaN(ts)) { document.getElementById('ts-output').textContent = 'Invalid timestamp.'; return; }
+      // If timestamp has 13 digits, treat as milliseconds
+      if (v.length >= 13) ts = ts; // already ms
+      else ts = ts * 1000; // convert seconds to ms
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) { document.getElementById('ts-output').textContent = 'Invalid timestamp.'; return; }
+      document.getElementById('ts-output').textContent =
+        `UTC:      ${fmtDate(d)}\n` +
+        `Local:    ${d.toString()}\n` +
+        `ISO 8601: ${d.toISOString()}\n` +
+        `Seconds:  ${Math.floor(d.getTime()/1000)}\n` +
+        `Millis:   ${d.getTime()}`;
+    }
+
+    function dateToTs() {
+      const v = document.getElementById('date-input').value;
+      if (!v) { document.getElementById('date-output').textContent = 'Select a date to convert.'; return; }
+      // datetime-local gives local time; interpret as UTC by appending Z
+      const d = new Date(v + 'Z');
+      if (isNaN(d.getTime())) { document.getElementById('date-output').textContent = 'Invalid date.'; return; }
+      document.getElementById('date-output').textContent =
+        `Seconds:  ${Math.floor(d.getTime()/1000)}\n` +
+        `Millis:   ${d.getTime()}\n` +
+        `ISO 8601: ${d.toISOString()}\n` +
+        `UTC:      ${fmtDate(d)}`;
+    }
+
+    // Update current time every second
+    setInterval(updateNow, 1000);
+    updateNow();
+  </script>
+</body>
+</html>
