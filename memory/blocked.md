@@ -14,3 +14,13 @@ Example entries (delete these once the system is running):
 - [YYYY-MM-DD] Human verification required for Stripe payment processing
 
 ---
+
+[2026-08-04 17:38:36 UTC] LLM call failed at step 1.
+All LLM providers failed. Attempts:
+FAIL groq/llama-3.3-70b-versatile attempt 1: HTTP Error 403: Forbidden
+FAIL groq/llama-3.1-8b-instant attempt 1: HTTP Error 403: Forbidden
+FAIL groq/mixtral-8x7b-32768 attempt 1: HTTP Error 403: Forbidden
+FAIL gemini/gemini-2.0-flash attempt 1: HTTP Error 429: Too Many Requests
+FAIL gemini/gemini-1.5-flash attempt 1: HTTP Error 404: Not Found
+FAIL gemini/gemini-1.5-flash-8b attempt 1: HTTP Error 404: Not Found
+FAIL cerebras/llama-3.1-8b-instant attempt 1: HTTP
