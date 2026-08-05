@@ -144,7 +144,7 @@ if not business_prompt.strip():
 
 RESPONSE_FORMAT_INSTRUCTIONS = """Respond with ONLY a single JSON object, no other text, no markdown fences, in exactly this shape:
 {
-  "reasoning": "<your reasoning for THIS step — what you decided and why, under 500000 chars>",
+  "reasoning": "<your reasoning for THIS step — what you decided and why, under 5000 chars>",
   "action": "none" | "done" | "write_file" | "read_file" | "list_dir" | "delete_file" | "append_doc" | "http_get" | "log_experiment" | "update_experiment",
   "action_params": {
     "path": "<for write_file/read_file/list_dir/delete_file/append_doc>",
