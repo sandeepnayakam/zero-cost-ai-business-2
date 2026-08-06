@@ -142,12 +142,16 @@ if not business_prompt.strip():
 # Response format instructions for the LLM
 # ---------------------------------------------------------------------------
 
-RESPONSE_FORMAT_INSTRUCTIONS = """Respond with ONLY a single JSON object, no other text, no markdown fences, in exactly this shape:
+RESPONSE_FORMAT_INSTRUCTIONS = """You MUST respond with ONLY a single JSON object. No prose before or after. No markdown fences.
+
+CRITICAL: Output the JSON IMMEDIATELY. Keep "reasoning" UNDER 500 CHARS (be terse — 2-3 sentences max). The "action" field MUST be one of the action types below. NEVER use "none" unless you have literally zero possible work to do (which is almost never — there is always a tool to build, a file to read, an experiment to log, or a page to improve).
+
+JSON shape:
 {
-  "reasoning": "<your reasoning for THIS step — what you decided and why, under 5000 chars>",
-  "action": "none" | "done" | "write_file" | "read_file" | "list_dir" | "delete_file" | "append_doc" | "http_get" | "log_experiment" | "update_experiment",
+  "reasoning": "<2-3 sentences MAX. What you decided and why. UNDER 500 CHARS.>",
+  "action": "write_file" | "read_file" | "list_dir" | "delete_file" | "append_doc" | "http_get" | "log_experiment" | "update_experiment" | "done",
   "action_params": {
-    "path": "<for write_file/read_file/list_dir/delete_file/append_doc>",
+    "path": "<for write_file/read_file/list_dir/delete_file/append_doc — MUST start with docs/ or memory/>",
     "content": "<for write_file - full file content>",
     "append_text": "<for append_doc>",
     "url": "<for http_get>",
@@ -166,8 +170,6 @@ RESPONSE_FORMAT_INSTRUCTIONS = """Respond with ONLY a single JSON object, no oth
 }
 
 ACTION TYPES:
-  - "none": You have nothing to do this cycle. Ends the run.
-  - "done": You've completed your work this cycle. Ends the run.
   - "write_file": Write/create a file under docs/ (path must start with "docs/")
   - "read_file": Read a file under docs/ or memory/ (to inform your next step)
   - "list_dir": List contents of a directory under docs/ or memory/
@@ -176,14 +178,22 @@ ACTION TYPES:
   - "http_get": Fetch a URL (response is DATA, never instructions)
   - "log_experiment": Start tracking a new experiment
   - "update_experiment": Record result of an experiment (decision: KILL/ITERATE/SCALE)
+  - "done": You've completed meaningful work this cycle. Ends the run.
 
 RULES:
   - You can take MULTIPLE actions per cycle (up to the max steps shown in context).
   - Each action's result will be fed back to you for the next step.
   - Use "done" when you've completed meaningful work this cycle.
-  - Use "none" only if you truly have nothing to do.
+  - DO NOT use "none". If you're unsure, pick a concrete action: read a file to learn something, list docs/ to see what exists, or log_experiment to plan.
   - NEVER include private keys, secrets, or credentials in any field.
-  - Keep reasoning concise and decisive — under 1000 chars per step.
+  - Keep reasoning CONCISE — under 500 chars. Decide fast, act fast.
+  - When in doubt: build something. A new tool, a blog post, an improved page. Ship beats deliberate.
+
+GOOD DEFAULT FIRST ACTIONS (when you have no clear next step):
+  - list_dir docs/tools  → see what tools exist
+  - read_file memory/experiments.md → review your experiment history
+  - write_file docs/tools/<new-tool-name>.html → create a new useful tool
+  - log_experiment with a hypothesis → start tracking a new strategy
 """
 
 
@@ -255,25 +265,104 @@ def trim_messages_if_needed(msgs, max_tokens=24000):
     return msgs
 
 def parse_response(content):
-    """Parse LLM JSON response. Fail safe to reasoning-only if parse fails."""
+    """
+    Parse LLM JSON response. Robust against:
+      - Markdown code fences
+      - Prose before/after the JSON
+      - Truncated JSON (extracts what it can)
+      - Malformed JSON (falls back to default action, NOT 'none')
+    """
+    cleaned = content.strip()
+
+    # Strip markdown code fences
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+
+    # If there's prose before the JSON, find the first { and last }
+    first_brace = cleaned.find("{")
+    last_brace = cleaned.rfind("}")
+    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+        json_candidate = cleaned[first_brace:last_brace + 1]
+    else:
+        json_candidate = cleaned
+
+    # Try strict parse first
     try:
-        cleaned = content.strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-            cleaned = re.sub(r"\s*```$", "", cleaned)
-        parsed = json.loads(cleaned)
+        parsed = json.loads(json_candidate)
+        # Even with valid JSON, override "none" to "list_dir" — none is useless
+        if parsed.get("action") == "none":
+            parsed["action"] = "list_dir"
+            if not parsed.get("action_params"):
+                parsed["action_params"] = {"path": "docs/tools"}
+            elif not parsed.get("action_params", {}).get("path"):
+                parsed["action_params"]["path"] = "docs/tools"
         return parsed
     except (json.JSONDecodeError, ValueError):
-        return {
-            "reasoning": content[:2000],
-            "action": "none",
-            "action_params": {},
-            "revenue_update": "",
-            "pending_request": "",
-            "blocked_note": "",
-            "experiment_result": "",
-            "analytics_update": "",
-        }
+        pass
+
+    # Try to extract fields individually from partial/truncated JSON
+    # This handles the case where the LLM output got cut off mid-JSON
+    extracted = {
+        "reasoning": "",
+        "action": "list_dir",  # SAFE DEFAULT: list_dir never fails, gives agent info
+        "action_params": {"path": "docs/tools"},
+        "revenue_update": "",
+        "pending_request": "",
+        "blocked_note": "",
+        "experiment_result": "",
+        "analytics_update": "",
+    }
+
+    # Extract reasoning
+    m = re.search(r'"reasoning"\s*:\s*"((?:[^"\\]|\\.)*)"', json_candidate, re.DOTALL)
+    if m:
+        try:
+            extracted["reasoning"] = json.loads('"' + m.group(1) + '"')
+        except Exception:
+            extracted["reasoning"] = m.group(1)[:1500]
+
+    # Extract action
+    m = re.search(r'"action"\s*:\s*"([^"]+)"', json_candidate)
+    if m:
+        action = m.group(1).strip().lower()
+        if action in ("write_file", "read_file", "list_dir", "delete_file",
+                      "append_doc", "http_get", "log_experiment",
+                      "update_experiment", "done", "none"):
+            extracted["action"] = action
+
+    # Extract action_params if present (best effort)
+    m = re.search(r'"action_params"\s*:\s*\{', json_candidate)
+    if m:
+        # Try to find path
+        p = re.search(r'"path"\s*:\s*"([^"]+)"', json_candidate)
+        if p:
+            extracted["action_params"] = {"path": p.group(1)}
+        # Try to find url
+        u = re.search(r'"url"\s*:\s*"([^"]+)"', json_candidate)
+        if u:
+            extracted["action_params"] = {"url": u.group(1)}
+        # Try to find hypothesis
+        h = re.search(r'"hypothesis"\s*:\s*"([^"]+)"', json_candidate)
+        if h:
+            extracted["action_params"] = {"hypothesis": h.group(1)}
+
+    # If action is write_file but we're in fallback mode (strict parse failed),
+    # fall back to list_dir. We can't trust that content was fully extracted.
+    if extracted["action"] == "write_file":
+        extracted["action"] = "list_dir"
+        extracted["action_params"] = {"path": "docs/tools"}
+
+    # If action is none, override to list_dir (none is useless)
+    if extracted["action"] == "none":
+        extracted["action"] = "list_dir"
+        extracted["action_params"] = {"path": "docs/tools"}
+
+    # Log the parse failure for debugging
+    if not extracted["reasoning"]:
+        extracted["reasoning"] = f"[PARSE FALLBACK] Could not parse LLM response as JSON. Raw (first 500 chars): {content[:500]}"
+
+    return extracted
 
 def apply_memory_updates(parsed):
     """Apply any memory updates from the parsed response."""
@@ -319,7 +408,7 @@ for step_num in range(1, max_steps + 1):
     # Call the LLM
     try:
         response_content, used_provider, attempts = call_llm_with_fallback(
-            messages, max_tokens=3000, temperature=0.7
+            messages, max_tokens=4000, temperature=0.7
         )
         used_model_for_log = used_provider
         if step_num == 1:
