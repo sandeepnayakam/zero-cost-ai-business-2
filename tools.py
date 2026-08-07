@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Tool Registry for the Autonomous Agent
-======================================
+Tool Registry for the Autonomous Agent (v4)
+============================================
 
 Each tool takes a params dict and returns (success: bool, result_message: str).
 All file-write tools are sandboxed to docs/ only.
@@ -17,9 +17,16 @@ Available tools:
   - http_get(url)
   - log_experiment(hypothesis, setup, prediction)
   - update_experiment(experiment_ref, result, decision)
+  - solve_captcha(image_url, captcha_type)         [NEW v4]
+  - check_wallet_balance(chain, address)           [NEW v4]
+  - check_all_wallets()                            [NEW v4]
+  - log_opportunity(source, description, ...)      [NEW v4]
+  - log_revenue(source, amount, currency, ...)     [NEW v4]
+  - request_human_action(action_type, ...)         [NEW v4]
 """
 
 import os
+import sys
 import json
 import urllib.request
 from datetime import datetime, timezone
@@ -240,18 +247,161 @@ def tool_update_experiment(params):
 
 
 # ---------------------------------------------------------------------------
+# New tools for v4 — CAPTCHA, wallet, opportunities, human protocol
+# ---------------------------------------------------------------------------
+
+def tool_solve_captcha(params):
+    """Solve a simple text CAPTCHA using vision AI."""
+    image_url = params.get("image_url", "")
+    captcha_type = params.get("captcha_type", "text")
+    if not image_url:
+        return False, "solve_captcha failed: image_url is required"
+    try:
+        # Import here to avoid loading the module if not used
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import captcha
+        success, result = captcha.solve_captcha(image_url, captcha_type)
+        if success:
+            return True, f"CAPTCHA solved: '{result}'"
+        return False, f"CAPTCHA solving failed: {result}"
+    except Exception as e:
+        return False, f"solve_captcha failed: {e}"
+
+
+def tool_check_wallet_balance(params):
+    """Check the balance of a wallet (READ-ONLY — never signs transactions)."""
+    chain = params.get("chain", "").lower().strip()
+    address = params.get("address", "")
+    if not chain or not address:
+        return False, "check_wallet_balance failed: chain and address are required"
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import wallet
+        result = wallet.check_balance(chain, address)
+        if len(result) == 3:
+            success, balance, currency = result
+            if success:
+                return True, f"Balance: {balance} {currency} ({chain} address {address})"
+            return False, f"Balance check failed: {currency}"
+        else:
+            success, balance, currency, error = result
+            return False, f"Balance check failed: {error}"
+    except Exception as e:
+        return False, f"check_wallet_balance failed: {e}"
+
+
+def tool_check_all_wallets(params):
+    """Check balances of all project wallets."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import wallet
+        results = wallet.check_all_project_wallets()
+        lines = []
+        for chain, result in results.items():
+            if len(result) == 3:
+                success, balance, currency = result
+                status = "OK" if success else "FAIL"
+                lines.append(f"  {chain}: {balance} {currency} [{status}]")
+            else:
+                lines.append(f"  {chain}: ERROR")
+        return True, "Wallet balances:\n" + "\n".join(lines)
+    except Exception as e:
+        return False, f"check_all_wallets failed: {e}"
+
+
+def tool_log_opportunity(params):
+    """Log a new income opportunity to opportunities.md."""
+    source = params.get("source", "")
+    description = params.get("description", "")
+    potential = params.get("potential", "")
+    url = params.get("url", "")
+    if not source or not description:
+        return False, "log_opportunity failed: source and description are required"
+    entry = (
+        f"\n[{_timestamp()}]\n"
+        f"  SOURCE:      {source}\n"
+        f"  DESCRIPTION: {description}\n"
+        f"  POTENTIAL:   {potential}\n"
+        f"  URL:         {url}\n"
+        f"  STATUS:      NEW\n"
+    )
+    _append_file("memory/opportunities.md", entry)
+    return True, f"Logged opportunity: {source}"
+
+
+def tool_log_revenue(params):
+    """Record REALIZED revenue (money actually received)."""
+    source = params.get("source", "")
+    amount = params.get("amount", "")
+    currency = params.get("currency", "USD")
+    tx_hash = params.get("tx_hash", "")
+    if not source or amount == "":
+        return False, "log_revenue failed: source and amount are required"
+    try:
+        amount_float = float(amount)
+    except (ValueError, TypeError):
+        return False, f"log_revenue failed: amount must be a number, got {amount}"
+    entry = (
+        f"\n[{_timestamp()}] REVENUE CONFIRMED\n"
+        f"  Source:   {source}\n"
+        f"  Amount:   {amount_float} {currency}\n"
+        f"  TX Hash:  {tx_hash if tx_hash else '(none)'}\n"
+    )
+    _append_file("memory/revenue.md", entry)
+    return True, f"Logged revenue: {amount_float} {currency} from {source}"
+
+
+def tool_request_human_action(params):
+    """Log a structured human-action request."""
+    action_type = params.get("action_type", "other")
+    platform = params.get("platform", "")
+    steps_str = params.get("steps", "")
+    why = params.get("why", "")
+    priority = params.get("priority", "normal")
+
+    if not platform or not why:
+        return False, "request_human_action failed: platform and why are required"
+
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import human_protocol
+        # Parse steps — can be a list or a string with newlines
+        if isinstance(steps_str, list):
+            steps = steps_str
+        elif isinstance(steps_str, str) and steps_str:
+            steps = [s.strip() for s in steps_str.split("\n") if s.strip()]
+        else:
+            steps = ["(no specific steps provided — see 'why' field)"]
+
+        human_protocol.request_human_action(action_type, platform, steps, why, priority)
+        return True, f"Logged human-action request: {action_type} for {platform} (priority: {priority})"
+    except Exception as e:
+        return False, f"request_human_action failed: {e}"
+
+
+# ---------------------------------------------------------------------------
 # Tool registry
 # ---------------------------------------------------------------------------
 
 TOOLS = {
-    "write_file":        tool_write_file,
-    "read_file":         tool_read_file,
-    "list_dir":          tool_list_dir,
-    "delete_file":       tool_delete_file,
-    "append_doc":        tool_append_doc,
-    "http_get":          tool_http_get,
-    "log_experiment":    tool_log_experiment,
-    "update_experiment": tool_update_experiment,
+    # File operations
+    "write_file":              tool_write_file,
+    "read_file":               tool_read_file,
+    "list_dir":                tool_list_dir,
+    "delete_file":             tool_delete_file,
+    "append_doc":              tool_append_doc,
+    # Network
+    "http_get":                tool_http_get,
+    # Experiments
+    "log_experiment":          tool_log_experiment,
+    "update_experiment":       tool_update_experiment,
+    # NEW in v4
+    "solve_captcha":           tool_solve_captcha,
+    "check_wallet_balance":    tool_check_wallet_balance,
+    "check_all_wallets":       tool_check_all_wallets,
+    "log_opportunity":         tool_log_opportunity,
+    "log_revenue":             tool_log_revenue,
+    "request_human_action":    tool_request_human_action,
 }
 
 
