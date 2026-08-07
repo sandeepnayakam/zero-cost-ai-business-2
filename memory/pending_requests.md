@@ -1,8 +1,10 @@
 # Pending Requests (Awaiting Human Action)
 
 **Purpose:** One clear request per entry. Human reviews daily.
-**Format:** `[YYYY-MM-DD HH:MM UTC] [Priority] Request`
+**Format:** Structured via the `request_human_action` tool.
 
-The agent will add new requests here as it encounters blockers. Once a request is fulfilled, the human can delete the entry (or the agent will overwrite it as resolved).
+The agent uses the `request_human_action` tool to log structured requests.
+When you complete a request, add an entry to `memory/human_actions.md` and
+update `memory/credentials.md` to reflect the new account/capability.
 
 ---
