@@ -1,121 +1,61 @@
-# Zero-Cost AI Business — v3 (Agentic Loop)
+# Zero-Cost AI Business — v4 (Multi-Track Revenue)
 
-An autonomous AI agent that runs every 30 minutes on GitHub Actions (free), with a multi-step agentic loop, daily budget management across 7 free LLM providers, and a built-in experiment-driven methodology. It builds useful web tools and content on a GitHub Pages site (also free), and monetizes them through crypto tips and other zero-cost revenue tracks.
+An autonomous AI agent that runs every 30 minutes on GitHub Actions (free), pursues **9 different revenue tracks** in parallel, has CAPTCHA solving, wallet balance checking, and a formal human collaboration protocol. Zero cost, maximum autonomy, designed to actually make money.
 
-## What Makes v3 Different
+## What Makes v4 Different
 
-| Feature | v2 | v3 (this version) |
+| Feature | v3 | v4 (this version) |
 |---------|----|--------------------|
-| Run frequency | Every 2 hours | Every 30 minutes |
-| Actions per run | 1 | 1-5 (multi-step agentic loop) |
-| LLM budget | Unlimited (could exhaust) | Daily budget tracking per provider |
-| Budget pacing | None | Scales steps based on remaining budget |
-| Tools available | 3 (write, append, http) | 8 (write, read, list, delete, append, http, log_experiment, update_experiment) |
-| Prompt style | Prescriptive task lists | Minimal — agent decides what to do |
-| Methodology | "Build these specific tools" | "Run small experiments. Kill what doesn't work. Double down on what does." |
-| Pre-loaded tools | 4 | 8 |
+| Revenue tracks | 1 (crypto tips) | **9 tracks** (bounties, competitions, airdrops, content, affiliate, products, sponsorships, microtasks, tips) |
+| Tools available | 8 | **14** (added CAPTCHA, wallet checker, opportunity/revenue logging, human protocol) |
+| Memory files | 10 | **13** (added opportunities, competitions, human_actions, credentials) |
+| Human collaboration | Generic pending_requests | **Formal protocol** with structured requests, action log, credentials tracker |
+| CAPTCHA solving | None | **Vision-based** (Gemini) for simple text CAPTCHAs |
+| Wallet verification | None | **Read-only** balance checking for 5 chains |
+| Revenue tracking | Claimed $0.06 (fake) | **$0.00 honest start** — every cent verified |
 
-## How It Works
+## The 9 Revenue Tracks
 
-### The Agentic Loop
+| # | Track | Potential | Effort | Status |
+|---|---|---|---|---|
+| 1 | **Bounties & Competitions** | HIGH ($100-$50K) | Medium | Gitcoin, Immunefi, hackathons, Kaggle |
+| 2 | **Web3 Quests & Airdrops** | MEDIUM ($10-$500) | Low | Layer3, Galxe, Zealy, learn-and-earn |
+| 3 | **Agent Marketplace** | MEDIUM (passive) | Low | Morphic, similar |
+| 4 | **Content Creation** | MEDIUM ($10-$1000) | Medium | Mirror.xyz, Medium, Publish0x |
+| 5 | **Crypto Tips** | LOW | Passive | Existing tip jar |
+| 6 | **Affiliate Marketing** | MEDIUM | Medium | Amazon, crypto exchanges |
+| 7 | **Digital Products** | MEDIUM ($1-$9 each) | Medium | Gumroad |
+| 8 | **Open Source Sponsorships** | LOW | Passive | GitHub Sponsors |
+| 9 | **Microtasks & Surveys** | LOW | Low | Prolific, UserTesting |
 
-Each run, the agent:
-1. Reads all memory files + budget status
-2. Calls the LLM with full context → gets an action
-3. Executes the action (write file, read file, list dir, etc.)
-4. Feeds the action result back to the LLM → gets next action
-5. Repeats until: agent says "done", max steps reached, or budget exhausted
+## New Capabilities
 
-This lets the agent do **multi-step work in a single run**, e.g.:
-- Read existing `docs/tools/` → identify a gap → create a new tool → verify it → log an experiment
-- Check wallet balance via free API → log revenue → update the tip page → write a blog post about it
-- List all docs → find broken links → fix them → log the fix
+### CAPTCHA Solving
+- Uses Gemini's vision API to solve simple text CAPTCHAs
+- For legitimate use only (account registration, directory submission)
+- Every solve is logged to `memory/captcha_log.md` for audit
+- Does NOT support reCAPTCHA, hCaptcha, Cloudflare Turnstile
+- Ethics: only for ToS-compliant purposes, never for spam/scraping
 
-### Daily Budget Management
+### Wallet Balance Checking (Read-Only)
+- Checks balances on Bitcoin, Ethereum, Solana, Tron, Ronin
+- Uses free public APIs (no API key needed)
+- **NEVER signs transactions** — purely read-only
+- Every check logged to `memory/wallet_balances.md`
+- Agent can verify if tips actually arrived before logging revenue
 
-The agent spreads its daily LLM budget across the whole day instead of exhausting it in the first few runs.
+### Human Collaboration Protocol
+- Structured `request_human_action` tool
+- Requests include: action_type, platform, steps, why, priority
+- `memory/human_actions.md` tracks completed human work
+- `memory/credentials.md` tracks which platforms are available
+- Agent reads these at start of each cycle to know what's unlocked
 
-| Budget Level | Remaining | Max Steps/Run |
-|---|---|---|
-| full | >80% | 5 |
-| high | 50-80% | 4 |
-| medium | 20-50% | 3 |
-| low | 5-20% | 2 |
-| critical | 1-5% | 1 |
-| exhausted | 0% | skip run |
-
-**Total daily capacity**: ~18,550 requests across all 7 providers
-**Max daily usage**: 48 runs × 5 steps = 240 calls/day
-
-So budget is plentiful — the tracker mainly prevents bursts and ensures the agent stays active all day.
-
-### Multi-Provider LLM Fallback
-
-The agent supports 7 free LLM providers and tries them in priority order:
-
-1. **Groq** (GROQ_API_KEY) — 14K req/day, Llama 3.3 70B
-2. **Google Gemini** (GEMINI_API_KEY) — 1,500 req/day, Gemini Flash
-3. **Cerebras** (CEREBRAS_API_KEY) — 1,000 req/day
-4. **SambaNova** (SAMBANOVA_API_KEY) — 500 req/day
-5. **Cloudflare Workers AI** (CF_API_TOKEN + CF_ACCOUNT_ID) — 1,000 req/day
-6. **HuggingFace** (HF_TOKEN) — 500 req/day
-7. **OpenRouter** (OPENROUTER_API_KEY) — 50 req/day (free models)
-
-If one provider fails or is exhausted, it automatically falls back to the next.
-
-## Setup (10 minutes)
-
-### Step 1: Create the GitHub repo
-
-1. Create a new **public** repo on GitHub (e.g., `zero-cost-ai-business`).
-2. Copy ALL files from this project into the repo (preserving the folder structure).
-3. Commit and push to `main`.
-
-### Step 2: Get free LLM API keys
-
-Set up as many as you like — the agent uses them in fallback order:
-
-| Provider | Where to get free key | Notes |
-|---|---|---|
-| **Groq** ⭐ | https://console.groq.com/keys | Best free option. 14K req/day. |
-| **Google Gemini** ⭐ | https://aistudio.google.com/apikey | Best free quality. No card needed. |
-| Cerebras | https://cloud.cerebras.ai/ | Super-fast inference |
-| SambaNova | https://cloud.sambanova.ai/ | Big models (405B) |
-| Cloudflare | https://dash.cloudflare.com/ | Needs account ID + API token |
-| HuggingFace | https://huggingface.co/settings/tokens | Open models |
-| OpenRouter | https://openrouter.ai/keys | 50 req/day on free models |
-
-### Step 3: Add API keys as GitHub repo secrets
-
-In your repo: **Settings → Secrets and variables → Actions → New repository secret**
-
-Add the keys you got (any subset works — at minimum, add Groq + Gemini):
-- `GROQ_API_KEY`
-- `GEMINI_API_KEY`
-- `OPENROUTER_API_KEY`
-- `CEREBRAS_API_KEY`
-- `SAMBANOVA_API_KEY`
-- `CF_API_TOKEN` and `CF_ACCOUNT_ID`
-- `HF_TOKEN`
-
-Also add:
-- `GH_PAT` — a GitHub Personal Access Token with `repo` scope (for the agent to commit changes back). Create one at https://github.com/settings/tokens.
-
-### Step 4: Enable GitHub Pages
-
-1. In your repo: **Settings → Pages → Build and deployment → Source = GitHub Actions**
-2. The included `.github/workflows/deploy-pages.yml` handles deployment.
-3. Your site will be live at `https://YOUR-USERNAME.github.io/REPO-NAME/`.
-
-### Step 5: Update sitemap and robots.txt
-
-Open `docs/sitemap.xml` and `docs/robots.txt` and replace `YOUR-USERNAME` with your actual GitHub username (and `REPO-NAME` if different).
-
-### Step 6: Trigger the first run
-
-Go to **Actions tab → Zero-Cost Business Autonomous Loop → Run workflow**.
-
-The agent will now run every 30 minutes automatically.
+### Opportunity Tracking
+- `memory/opportunities.md` — income opportunities discovered
+- `memory/competitions.md` — active bounties/hackathons being pursued
+- Status tracking: NEW → RESEARCHING → IN_PROGRESS → COMPLETED
+- Agent reviews these each cycle to prioritize work
 
 ## File Structure
 
@@ -124,136 +64,147 @@ zero-cost-ai-business/
 ├── .github/workflows/
 │   ├── loop.yml                  # Agent loop (every 30 min)
 │   └── deploy-pages.yml          # Deploy docs/ to GitHub Pages
-├── agent.py                      # Main agent (agentic loop entry point)
-├── llm_client.py                 # Multi-provider LLM client w/ fallback
+├── agent.py                      # Main agent (agentic loop)
+├── llm_client.py                 # 7-provider LLM client w/ fallback
 ├── budget.py                     # Daily LLM budget tracker
-├── tools.py                      # Tool registry (8 tools)
+├── tools.py                      # 14-tool registry (sandboxed)
+├── captcha.py                    # NEW: CAPTCHA solving (vision-based)
+├── wallet.py                     # NEW: Read-only wallet balance checker
+├── human_protocol.py             # NEW: Human collaboration protocol
 ├── requirements.txt
 ├── README.md
 ├── LICENSE                       # MIT
 ├── .gitignore
 │
 ├── prompts/
-│   └── business_prompt.md        # System prompt (minimal, non-prescriptive)
+│   └── business_prompt.md        # System prompt (9 revenue tracks)
 │
-├── memory/                       # Agent's persistent memory
-│   ├── state.md                  # Rolling summary of recent runs
-│   ├── action_log.md             # Full audit log (auto-trimmed)
-│   ├── blocked.md                # Blockers requiring human action
-│   ├── revenue.md                # Realized profit + wallet addresses
-│   ├── pending_requests.md       # Requests for human operator
-│   ├── consult_request.md        # Agent's strategic Q for human
+├── memory/                       # Agent's persistent memory (13 files)
+│   ├── state.md                  # Rolling summary
+│   ├── action_log.md             # Full audit log
+│   ├── blocked.md                # Blockers requiring human
+│   ├── revenue.md                # REALIZED profit ($0.00 start)
+│   ├── pending_requests.md       # Requests for human
+│   ├── opportunities.md          # NEW: Income opportunities
+│   ├── competitions.md           # NEW: Bounties/hackathons
+│   ├── human_actions.md          # NEW: Completed human work
+│   ├── credentials.md            # NEW: Platform account status
+│   ├── consult_request.md        # Strategic Q for human
 │   ├── consult_response.md       # Human's answer
-│   ├── experiments.md            # A/B test & experiment results
+│   ├── experiments.md            # A/B test results
 │   ├── analytics.md              # Traffic & conversion metrics
-│   └── budget.md                 # Daily LLM usage tracker (auto-managed)
+│   ├── budget.md                 # Daily LLM usage
+│   ├── captcha_log.md            # NEW: CAPTCHA solve audit log (auto-created)
+│   └── wallet_balances.md        # NEW: Wallet check audit log (auto-created)
 │
 ├── docs/                         # GitHub Pages website
-│   ├── index.html                # Landing page (lists all 8 tools)
-│   ├── _config.yml               # Jekyll config
-│   ├── sitemap.xml
-│   ├── robots.txt
-│   ├── assets/
-│   │   ├── css/style.css
-│   │   └── js/main.js
+│   ├── index.html                # Landing page
 │   ├── tools/                    # 8 pre-loaded tools
-│   │   ├── index.html
-│   │   ├── json-formatter.html
-│   │   ├── qr-generator.html
-│   │   ├── base64.html
-│   │   ├── password-generator.html
-│   │   ├── hash-generator.html
-│   │   ├── url-encoder.html
-│   │   ├── uuid-generator.html
-│   │   └── timestamp-converter.html
-│   ├── guides/
-│   │   └── crypto-tips.html      # Tip jar with all 5 wallet addresses
-│   └── blog/
-│       └── index.html
+│   ├── guides/crypto-tips.html   # Tip jar
+│   ├── blog/
+│   └── assets/
 │
 └── config/
-    └── settings.json             # Agent configuration
+    └── settings.json
 ```
 
-## The Agent's Operating Method
+## Setup (15 minutes)
 
-The prompt is intentionally **non-prescriptive**. The agent is NOT told what tools to build or what content to write. It follows one method:
+### Step 1: Push to GitHub
+1. Create a public repo
+2. Copy all files from the ZIP, preserving structure
+3. Commit and push to `main`
 
-> **Run small experiments. Kill what doesn't work. Double down on what does. Log every experiment's result in experiments.md.**
+### Step 2: Get LLM API Keys
+Minimum: **Groq + Gemini** (both free, both essential)
+- Groq: https://console.groq.com/keys (14K req/day)
+- Gemini: https://aistudio.google.com/apikey (1,500 req/day, also enables CAPTCHA solving)
 
-The agent has:
-- **Goal**: Maximize real realized profit
-- **Method**: Empirical experimentation
-- **Tools**: 8 file/web/experiment tools
-- **Memory**: 10 files tracking state, revenue, experiments, budget, etc.
-- **Autonomy**: It decides what to try
+Optional but recommended: Cerebras, SambaNova, OpenRouter
 
-Every experiment is logged with:
-- Hypothesis (what it expects to happen)
-- Setup (what it did)
-- Prediction (how it'll measure success)
-- Result (what actually happened)
-- Decision (KILL / ITERATE / SCALE)
+### Step 3: Add GitHub Secrets
+Settings → Secrets and variables → Actions → New repository secret:
+- `GROQ_API_KEY`
+- `GEMINI_API_KEY`
+- `OPENROUTER_API_KEY` (optional)
+- `CEREBRAS_API_KEY` (optional)
+- `SAMBANOVA_API_KEY` (optional)
+- `GH_PAT` — GitHub Personal Access Token (fine-grained, Contents: Read and write)
 
-## Security Model
+### Step 4: Enable GitHub Pages
+Settings → Pages → Source = "GitHub Actions"
 
-- **Path allowlist**: Writes restricted to `docs/`. Reads restricted to `docs/` + `memory/`.
-- **Sandboxed HTTP**: External content from `http_get` is logged but NEVER fed back to the LLM as instructions (prompt-injection defense).
-- **No secrets in code**: All API keys come from environment variables / GitHub secrets.
-- **No private keys**: Only public receive addresses stored. Never requested, never transmitted.
-- **Kill switch**: Create a `PAUSE` file in repo root to halt the agent.
-- **Action audit**: Every action logged in `action_log.md` with timestamp, model, result.
+### Step 5: Update sitemap
+Edit `docs/sitemap.xml` and `docs/robots.txt` — replace `YOUR-USERNAME` with your GitHub username
 
-## How to Audit
+### Step 6: Trigger First Run
+Actions tab → Zero-Cost Business Autonomous Loop → Run workflow
 
-Every run is fully logged:
-- `memory/state.md` — Rolling summary of last 2-3 runs
-- `memory/action_log.md` — Full uncapped audit log (auto-trimmed to 100 runs)
-- `memory/blocked.md` — Anything blocking progress
-- `memory/revenue.md` — Confirmed realized profit
-- `memory/experiments.md` — All experiments and their results
-- `memory/analytics.md` — Traffic and conversion metrics
-- `memory/budget.md` — Daily LLM usage per provider
+## How You Can Help the Agent
 
-Check these files in the repo (or via `git log`) any time.
+The agent will log requests to `memory/pending_requests.md`. You can help by:
+
+### High-Impact (Unlocks Major Revenue)
+1. **Create Coinbase account** — Unlocks Learn & Earn ($3-10 in crypto per course)
+2. **Create Gumroad account** — Unlocks digital product sales
+3. **Enable GitHub Sponsors** — Passive income from sponsors
+4. **Create Kaggle account** — Unlocks ML competitions ($10K-$100K prizes)
+
+### Medium-Impact
+5. **Create Medium account** — Content monetization
+6. **Create Devpost account** — Hackathon submissions
+7. **Create Gitcoin account** — Web3 bounties
+8. **Create Layer3/Galxe accounts** — Web3 quests
+
+### How to Complete a Request
+When the agent logs a request:
+1. Read `memory/pending_requests.md`
+2. Complete the requested action (create account, etc.)
+3. Add API keys as GitHub Secrets (if applicable)
+4. Update `memory/human_actions.md` with what you did
+5. Update `memory/credentials.md` to reflect the new account
+
+The agent will read these files on its next run and use the new capability.
+
+## ⚠️ Critical Safety Notes
+
+### NEVER Store Seed Phrases
+- The agent only has PUBLIC wallet addresses
+- It CANNOT and WILL NOT sign transactions
+- Any transaction requiring a signature goes to `pending_requests.md`
+- You sign manually in your wallet, paste back the tx hash
+- This is the ONLY safe way to handle crypto
+
+### CAPTCHA Solving Ethics
+- Only for legitimate, ToS-compliant purposes
+- NOT for mass account creation, spam, or scraping
+- NOT for bypassing rate limits
+- Many sites' ToS prohibit automated CAPTCHA solving
+- When in doubt, the agent requests human help instead
+
+### All Actions Are Logged
+- Every CAPTCHA solve → `memory/captcha_log.md`
+- Every wallet check → `memory/wallet_balances.md`
+- Every agent action → `memory/action_log.md`
+- Every human action → `memory/human_actions.md`
+- Full audit trail for everything
 
 ## How to Stop the Agent
-
-Create a file named `PAUSE` in the repo root:
+Create a `PAUSE` file in the repo root:
 ```bash
 touch PAUSE
 git add PAUSE && git commit -m "Pause agent" && git push
 ```
-The agent will skip runs while `PAUSE` exists. Delete it to resume.
 
 ## Troubleshooting
 
-**"All LLM providers failed"** — Check that at least one API key is set as a repo secret. The agent logs detailed failure reasons in `memory/blocked.md`.
+**"All LLM providers failed"** — Check that API keys are set as secrets. At minimum, need GROQ_API_KEY and GEMINI_API_KEY.
 
-**"Skipped — daily budget exhausted"** — All providers hit their daily limit. The agent will resume at UTC midnight when budgets reset. This is by design — it spreads usage across the day.
+**"Budget exhausted"** — All providers hit daily limit. Resets at UTC midnight.
 
-**"Workflow doesn't run"** — GitHub Actions scheduled workflows:
-- Only run on the default branch
-- Can be delayed 5-15 minutes during high load
-- Are skipped if the repo has been inactive for 60 days (GitHub auto-disables scheduled workflows)
+**Agent not making money** — Check `memory/opportunities.md` to see what it's pursuing. Check `memory/pending_requests.md` to see if it needs your help. The agent needs YOU to create accounts on platforms that require KYC.
 
-**"GitHub Pages not deploying"** — Make sure Settings → Pages → Source is set to "GitHub Actions".
-
-**"Agent keeps choosing 'done' immediately"** — Check `memory/budget.md` to see if budget is low. Also check the agent's reasoning in `memory/action_log.md` — it may need a nudge via `prompts/business_prompt.md`.
-
-## Customization
-
-- **Change run frequency**: Edit `.github/workflows/loop.yml` → `cron:` line. Current: `*/30 * * * *` (every 30 min).
-- **Change daily limits**: Edit `budget.py` → `DAILY_LIMITS` dict.
-- **Change max steps per run**: Edit `budget.py` → `get_max_steps_for_budget()` or the budget level thresholds in `get_budget_level()`.
-- **Add a new LLM provider**: Add a `_call_<provider>()` function in `llm_client.py` and register it in `PROVIDERS`.
-- **Add a new tool**: Add a `tool_<name>()` function in `tools.py` and register it in `TOOLS`.
-- **Change the agent's strategy**: Edit `prompts/business_prompt.md` — this is the agent's "brain".
+**CAPTCHA solving not working** — Requires GEMINI_API_KEY. Only works on simple text CAPTCHAs, not reCAPTCHA/hCaptcha.
 
 ## License
-
 MIT — see [LICENSE](LICENSE).
-
-## Support This Project
-
-If this template helps you make money, consider tipping the original wallets listed in `docs/guides/crypto-tips.html`. Or fork it and build your own.
