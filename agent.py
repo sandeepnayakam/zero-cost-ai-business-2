@@ -149,8 +149,8 @@ if not business_prompt.strip():
 RESPONSE_FORMAT_INSTRUCTIONS = """You MUST respond with ONLY a single JSON object. No prose before or after. No markdown fences.
 
 CRITICAL RULES (read carefully):
-1. Keep "reasoning" UNDER 300 CHARS (2-3 sentences max).
-2. Keep "content" for write_file UNDER 2000 CHARS. Use MINIMAL HTML templates. You can iterate and improve files in later cycles with append_doc.
+1. Keep "reasoning" UNDER 30000 CHARS (2-3 sentences max).
+2. Keep "content" for write_file UNDER 20000 CHARS. Use MINIMAL HTML templates. You can iterate and improve files in later cycles with append_doc.
 3. NEVER use "none" — always do something concrete.
 4. DO NOT repeat actions you already took this cycle (see "ACTIONS TAKEN THIS CYCLE" in feedback).
 5. After listing a directory ONCE, you know what's there — don't list it again. Move on to write_file or another action.
@@ -479,7 +479,7 @@ for step_num in range(1, max_steps + 1):
     # Call the LLM
     try:
         response_content, used_provider, attempts = call_llm_with_fallback(
-            messages, max_tokens=4000, temperature=0.7
+            messages, max_tokens=40000, temperature=0.7
         )
         used_model_for_log = used_provider
         if step_num == 1:
@@ -686,7 +686,7 @@ if _prior_state:
     chunks = _prior_state.split("## Summary")
     for chunk in chunks[1:]:
         prior_summary = ("## Summary" + chunk).strip()
-        if prior_summary and len(prior_summary) < 1500:
+        if prior_summary and len(prior_summary) < 15000:
             _prior_summaries.append(prior_summary)
 _prior_summaries = _prior_summaries[-2:]
 
