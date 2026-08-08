@@ -50,3 +50,11 @@ PREDICTION: The tool will be indexed by search engines and receive organic page 
 STATUS: RUNNING
 RESULT: (pending)
 DECISION: (pending)
+
+[2026-08-08 21:20:41 UTC]
+HYPOTHESIS: Adding a JWT Decoder tool will capture developer search traffic and generate crypto tips.
+SETUP: Created docs/tools/jwt-decoder.html with instant client-side JWT header/payload decoding.
+PREDICTION: The page will be indexed by search engines and receive developer traffic within 2 weeks.
+STATUS: RUNNING
+RESULT: (pending)
+DECISION: (pending)
