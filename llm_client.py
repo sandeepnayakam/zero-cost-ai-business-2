@@ -288,18 +288,22 @@ def get_models_for_provider(provider: str) -> List[str]:
 # Provider call implementations
 # ---------------------------------------------------------------------------
 
-def _call_groq(messages, model, max_tokens, temperature):
+def _call_groq(messages, model, max_tokens, temperature, json_mode=False):
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY not set")
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    # Force JSON-only output so the LLM can't waste tokens on prose preamble.
+    # Groq (OpenAI-compatible) supports response_format=json_object.
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     data = _post_json(url, headers, payload, timeout=60)
     return data["choices"][0]["message"]["content"], "groq"
 
 
-def _call_openrouter(messages, model, max_tokens, temperature):
+def _call_openrouter(messages, model, max_tokens, temperature, json_mode=False):
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY not set")
@@ -311,11 +315,15 @@ def _call_openrouter(messages, model, max_tokens, temperature):
         "X-Title": "Zero-Cost AI Business Agent",
     }
     payload = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    # OpenRouter supports response_format=json_object for OpenAI-compatible models.
+    # For the "openrouter/free" alias this may be ignored, but it's harmless.
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     data = _post_json(url, headers, payload, timeout=60)
     return data["choices"][0]["message"]["content"], "openrouter"
 
 
-def _call_gemini(messages, model, max_tokens, temperature):
+def _call_gemini(messages, model, max_tokens, temperature, json_mode=False):
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not set")
@@ -332,39 +340,51 @@ def _call_gemini(messages, model, max_tokens, temperature):
         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         f"?key={api_key}"
     )
+    # Gemini supports responseMimeType="application/json" which FORCES the model
+    # to output only valid JSON — no prose preamble, no markdown fences.
+    # This is the single biggest fix for the "Raw: The user wants me to o" parse
+    # failures, where Gemini was burning its output token budget on conversational
+    # text before getting to the JSON.
+    gen_config = {"maxOutputTokens": max_tokens, "temperature": temperature}
+    if json_mode:
+        gen_config["responseMimeType"] = "application/json"
     payload = {
         "systemInstruction": {"parts": [{"text": system_text}]} if system_text else None,
         "contents": contents,
-        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": temperature},
+        "generationConfig": gen_config,
     }
     payload = {k: v for k, v in payload.items() if v is not None}
     data = _post_json(url, {"Content-Type": "application/json"}, payload, timeout=60)
     return data["candidates"][0]["content"]["parts"][0]["text"], "gemini"
 
 
-def _call_cerebras(messages, model, max_tokens, temperature):
+def _call_cerebras(messages, model, max_tokens, temperature, json_mode=False):
     api_key = os.environ.get("CEREBRAS_API_KEY")
     if not api_key:
         raise RuntimeError("CEREBRAS_API_KEY not set")
     url = "https://api.cerebras.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     data = _post_json(url, headers, payload, timeout=60)
     return data["choices"][0]["message"]["content"], "cerebras"
 
 
-def _call_sambanova(messages, model, max_tokens, temperature):
+def _call_sambanova(messages, model, max_tokens, temperature, json_mode=False):
     api_key = os.environ.get("SAMBANOVA_API_KEY")
     if not api_key:
         raise RuntimeError("SAMBANOVA_API_KEY not set")
     url = "https://api.sambanova.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     data = _post_json(url, headers, payload, timeout=90)
     return data["choices"][0]["message"]["content"], "sambanova"
 
 
-def _call_cloudflare(messages, model, max_tokens, temperature):
+def _call_cloudflare(messages, model, max_tokens, temperature, json_mode=False):
     api_token = os.environ.get("CF_API_TOKEN")
     account_id = os.environ.get("CF_ACCOUNT_ID")
     if not api_token or not account_id:
@@ -372,17 +392,24 @@ def _call_cloudflare(messages, model, max_tokens, temperature):
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
     headers = {"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"}
     payload = {"messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    # Cloudflare Workers AI does not support response_format natively.
+    # json_mode is accepted but ignored — the prompt's "JSON only" instruction
+    # is the only enforcement for this provider.
     data = _post_json(url, headers, payload, timeout=60)
     return data["result"]["response"], "cloudflare"
 
 
-def _call_huggingface(messages, model, max_tokens, temperature):
+def _call_huggingface(messages, model, max_tokens, temperature, json_mode=False):
     api_key = os.environ.get("HF_TOKEN")
     if not api_key:
         raise RuntimeError("HF_TOKEN not set")
     url = f"https://api-inference.huggingface.co/models/{model}/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     payload = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+    # HuggingFace's OpenAI-compatible endpoint supports response_format on some models.
+    # If the model doesn't support it, the API will ignore it (harmless).
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     data = _post_json(url, headers, payload, timeout=60)
     return data["choices"][0]["message"]["content"], "huggingface"
 
@@ -421,10 +448,17 @@ def list_configured_providers() -> list:
     return [name for name, env, _ in PROVIDERS if os.environ.get(env)]
 
 
-def call_llm_with_fallback(messages, max_tokens=3000, temperature=0.7):
+def call_llm_with_fallback(messages, max_tokens=3000, temperature=0.7, json_mode=True):
     """
     Try every configured provider/model in order until one succeeds.
     Budget-aware: skips providers with zero remaining budget.
+
+    Args:
+        json_mode: If True (default), forces JSON-only output from the LLM.
+                   This prevents the LLM from wasting output tokens on prose
+                   preamble like "The user wants me to..." before the JSON.
+                   Gemini uses responseMimeType, OpenAI-compatible APIs use
+                   response_format=json_object.
 
     Returns: (content, provider_name, attempts_log)
     Raises:  RuntimeError if ALL providers fail or budget exhausted.
@@ -463,7 +497,10 @@ def call_llm_with_fallback(messages, max_tokens=3000, temperature=0.7):
         for model in models:
             for attempt in range(1, MAX_RETRIES_PER_MODEL + 1):
                 try:
-                    content, used_provider = call_fn(messages, model, max_tokens, temperature)
+                    content, used_provider = call_fn(
+                        messages, model, max_tokens, temperature,
+                        json_mode=json_mode,
+                    )
                     budget.record_usage(used_provider)
                     attempts.append(f"OK {used_provider}/{model} (attempt {attempt})")
                     return content, used_provider, attempts
@@ -472,6 +509,19 @@ def call_llm_with_fallback(messages, max_tokens=3000, temperature=0.7):
                     attempts.append(f"FAIL {provider_name}/{model} attempt {attempt}: {err_msg}")
                     # If 404 (model not found), don't retry this model — move to next
                     if "404" in err_msg or "Not Found" in err_msg:
+                        break
+                    # If response_format is unsupported (400), retry without it
+                    if "400" in err_msg and ("response_format" in err_msg or "response_mime" in err_msg or "responseMimeType" in err_msg):
+                        try:
+                            content, used_provider = call_fn(
+                                messages, model, max_tokens, temperature,
+                                json_mode=False,
+                            )
+                            budget.record_usage(used_provider)
+                            attempts.append(f"OK {used_provider}/{model} (attempt {attempt}, json_mode=off fallback)")
+                            return content, used_provider, attempts
+                        except Exception as e2:
+                            attempts.append(f"FAIL {provider_name}/{model} no-json-mode fallback: {str(e2)[:200]}")
                         break
                     if attempt < MAX_RETRIES_PER_MODEL:
                         time.sleep(RETRY_DELAY_SECONDS)
