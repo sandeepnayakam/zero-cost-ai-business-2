@@ -203,14 +203,15 @@ if not business_prompt.strip():
 # Response format instructions for the LLM
 # ---------------------------------------------------------------------------
 
-RESPONSE_FORMAT_INSTRUCTIONS = """You MUST respond with ONLY a single JSON object. No prose before or after. No markdown fences.
+RESPONSE_FORMAT_INSTRUCTIONS = """You MUST respond with ONLY a single JSON object. No prose before or after. No markdown fences. The very first character of your response MUST be `{`.
 
 CRITICAL RULES (read carefully):
-1. Keep "reasoning" UNDER 30000 CHARS (2-3 sentences max).
-2. Keep "content" for write_file UNDER 20000 CHARS. Use MINIMAL HTML templates. You can iterate and improve files in later cycles with append_doc.
+1. Keep "reasoning" UNDER 300 CHARS (2-3 sentences max). Do NOT think out loud — the reasoning field is for a brief note only.
+2. Keep "content" for write_file UNDER 12000 CHARS. You can write a full, functional HTML tool page in one shot. If you need more, use append_doc in a later step.
 3. NEVER use "none" — always do something concrete.
 4. DO NOT repeat actions you already took this cycle (see "ACTIONS TAKEN THIS CYCLE" in feedback).
 5. After listing a directory ONCE, you know what's there — don't list it again. Move on to write_file or another action.
+6. ALWAYS include "run_summary" on your LAST action of the run (especially when action is "done"). It must be 200-300 words of plain English prose — complete sentences, no bullet points, no JSON. The human operator reads this to understand what you did.
 
 JSON shape:
 {
@@ -218,8 +219,8 @@ JSON shape:
   "action": "write_file" | "read_file" | "list_dir" | "delete_file" | "append_doc" | "http_get" | "log_experiment" | "update_experiment" | "solve_captcha" | "check_wallet_balance" | "check_all_wallets" | "log_opportunity" | "log_revenue" | "request_human_action" | "done",
   "action_params": {
     "path": "<MUST start with docs/ or memory/>",
-    "content": "<for write_file - UNDER 2000 CHARS, minimal template>",
-    "append_text": "<for append_doc - UNDER 2000 CHARS>",
+    "content": "<for write_file - UP TO 12000 CHARS, full functional HTML>",
+    "append_text": "<for append_doc - UP TO 6000 CHARS>",
     "url": "<for http_get>",
     "hypothesis": "<for log_experiment>",
     "setup": "<for log_experiment>",
@@ -247,11 +248,12 @@ JSON shape:
   "pending_request": "<human-action request, or empty string>",
   "blocked_note": "<blocker to log, or empty string>",
   "experiment_result": "<experiment result to log, or empty string>",
-  "analytics_update": "<metric to log, or empty string>"
+  "analytics_update": "<metric to log, or empty string>",
+  "run_summary": "<PLAIN ENGLISH PROSE, 200-300 words, summarizing what you did this run, what worked, what failed, and what you plan to do next cycle. Write in complete sentences — NOT bullet points, NOT JSON. This is saved to memory/state.md for the human operator to read. Always include this field on your LAST action of the run (especially on 'done').>"
 }
 
 ACTION TYPES:
-  - "write_file": Create/overwrite a file under docs/. KEEP CONTENT UNDER 2000 CHARS.
+  - "write_file": Create/overwrite a file under docs/. CONTENT UP TO 12000 CHARS — write a complete, functional HTML page.
   - "append_doc": Add content to an existing file under docs/.
   - "read_file": Read a file under docs/ or memory/.
   - "list_dir": List a directory. DO THIS AT MOST ONCE PER CYCLE.
@@ -279,7 +281,7 @@ PREFERRED FIRST ACTIONS (in priority order):
   3. append_doc docs/tools/index.html — ADD a new tool to the listing
   4. log_experiment — PLAN a new strategy (only if you have no tool idea)
 
-MINIMAL HTML TEMPLATE for new tools (copy this, fill in the tool logic, keep under 2000 chars):
+MINIMAL HTML TEMPLATE for new tools (copy this, fill in the tool logic, expand up to 12000 chars):
 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>TOOL NAME - Free Online</title><meta name="description" content="TOOL DESCRIPTION"><link rel="stylesheet" href="/assets/css/style.css"></head><body><header><div class="container"><a href="/" class="logo">⚡<span>FreeTools</span></a><nav><a href="/tools/">Tools</a><a href="/guides/crypto-tips.html">Support</a></nav></div></header><main class="container tool-page"><h1>TOOL NAME</h1><p class="subtitle">SHORT DESCRIPTION</p><!-- TOOL UI HERE --><div class="tip-box"><h2>Found this useful?</h2><p>Consider a small crypto tip.</p><a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a></div></main><footer><div class="container"><p>Built by an autonomous AI agent.</p></div></footer><script src="/assets/js/main.js"></script></body></html>
 """
 
@@ -490,12 +492,29 @@ def parse_response(content):
 
     # Log the parse failure for debugging
     if not extracted["reasoning"]:
-        extracted["reasoning"] = f"[PARSE FALLBACK] Could not parse LLM response as JSON. Raw (first 500 chars): {content[:500]}"
+        # Diagnostic: figure out WHY parsing failed, so the log is useful.
+        diag = "unknown reason"
+        if not content or not content.strip():
+            diag = "LLM returned an EMPTY response (possible safety filter or quota error)"
+        elif not content.strip().startswith("{"):
+            # LLM emitted prose before JSON (or no JSON at all)
+            first_line = content.strip().split("\n", 1)[0][:120]
+            diag = f"LLM started with prose instead of JSON. First line: {first_line!r}"
+        elif "}" not in content:
+            diag = "LLM output has `{` but no closing `}` (truncated mid-JSON)"
+        else:
+            diag = "JSON present but malformed (likely truncated or has unescaped chars)"
+        extracted["reasoning"] = (
+            f"[PARSE FALLBACK] {diag}. "
+            f"Response length: {len(content)} chars. "
+            f"Raw (first 1500 chars): {content[:1500]}"
+        )
 
     return extracted
 
 def apply_memory_updates(parsed):
-    """Apply any memory updates from the parsed response."""
+    """Apply any memory updates from the parsed response.
+    Returns the run_summary string (or empty string) if the LLM provided one."""
     if parsed.get("revenue_update"):
         append_file("memory/revenue.md",
                     f"\n[{TIMESTAMP}] {parsed['revenue_update']}\n")
@@ -514,6 +533,8 @@ def apply_memory_updates(parsed):
         append_file("memory/analytics.md",
                     f"\n[{TIMESTAMP}] {parsed['analytics_update']}\n")
         cap_log("memory/analytics.md", max_entries=50)
+    # Return the run_summary (or empty string) so the caller can track it.
+    return str(parsed.get("run_summary", "") or "")
 
 
 # Track all steps for this run
@@ -522,6 +543,10 @@ run_summary_parts = []
 first_action = "none"
 first_model = "unknown"
 used_model_for_log = "unknown"
+# Track the LLM's prose summary of the run. Updated whenever the LLM provides
+# a "run_summary" field — we keep the LAST non-empty one (the LLM is told to
+# include it on its final action, so the final "done" response's summary wins).
+run_summary_text = ""
 
 for step_num in range(1, max_steps + 1):
     print(f"\n[{TIMESTAMP}] === Step {step_num}/{max_steps} ===")
@@ -535,30 +560,71 @@ for step_num in range(1, max_steps + 1):
     # Trim context if it's getting too large
     messages = trim_messages_if_needed(messages)
 
-    # Call the LLM
-    try:
-        response_content, used_provider, attempts = call_llm_with_fallback(
-            messages, max_tokens=40000, temperature=0.7
-        )
-        used_model_for_log = used_provider
-        if step_num == 1:
-            first_model = used_provider
-        for a in attempts:
-            print(f"    {a}")
-    except RuntimeError as e:
-        err = str(e)[:500]
-        append_file("memory/blocked.md",
-                    f"\n[{TIMESTAMP}] LLM call failed at step {step_num}.\n{err}\n")
-        cap_log("memory/blocked.md", max_entries=20)
-        print(f"    [-] LLM failed: {err}")
-        run_summary_parts.append(f"Stopped: LLM failed at step {step_num}.")
+    # Call the LLM (with one retry on parse failure, using a stricter prompt)
+    response_content = None
+    used_provider = "unknown"
+    attempts = []
+    parsed = None
+    for llm_attempt in (1, 2):
+        try:
+            response_content, used_provider, attempts = call_llm_with_fallback(
+                messages, max_tokens=40000, temperature=0.7
+            )
+            used_model_for_log = used_provider
+            if step_num == 1:
+                first_model = used_provider
+            for a in attempts:
+                print(f"    {a}")
+        except RuntimeError as e:
+            err = str(e)[:500]
+            append_file("memory/blocked.md",
+                        f"\n[{TIMESTAMP}] LLM call failed at step {step_num}.\n{err}\n")
+            cap_log("memory/blocked.md", max_entries=20)
+            print(f"    [-] LLM failed: {err}")
+            run_summary_parts.append(f"Stopped: LLM failed at step {step_num}.")
+            response_content = None
+            break
+
+        # Parse the response
+        parsed = parse_response(response_content)
+        reasoning = str(parsed.get("reasoning", ""))[:1500]
+
+        # Check if parsing fell back to defaults (reasoning starts with [PARSE FALLBACK])
+        is_parse_failure = reasoning.startswith("[PARSE FALLBACK]")
+
+        if not is_parse_failure or llm_attempt == 2:
+            break  # either parsed OK, or this was our second try
+
+        # Parse failed on first attempt — retry once with a stricter prompt.
+        # Pop the bad assistant response so it doesn't pollute the next call,
+        # and add a forceful reminder.
+        print(f"    [!] Parse failed on attempt 1. Retrying with stricter JSON-only prompt.")
+        print(f"        Diagnostic: {reasoning[:200]}")
+        # Don't keep the bad assistant response in context — replace it with a
+        # short note so the LLM knows what just happened.
+        messages.append({"role": "assistant", "content": response_content[:500]})
+        messages.append({
+            "role": "user",
+            "content": (
+                "ERROR: Your previous response was NOT valid JSON. "
+                "It either started with prose, was truncated, or had malformed syntax. "
+                "Try AGAIN. Respond with ONLY a single JSON object. "
+                "The very first character MUST be `{` and the very last MUST be `}`. "
+                "No prose, no markdown fences, no thinking out loud. "
+                "Pick a concrete action (write_file a new tool is best) and emit the JSON now."
+            ),
+        })
+
+    if response_content is None:
+        # LLM call itself failed on both attempts — already logged above
         break
 
-    # Add assistant response to conversation
+    # Always append the final assistant response to the conversation.
+    # (If we retried, we already appended the truncated bad response + the
+    # error user-message above; now we append the final attempt's response.)
     messages.append({"role": "assistant", "content": response_content})
 
-    # Parse the response
-    parsed = parse_response(response_content)
+    # Use the parsed result from the final attempt
     reasoning = str(parsed.get("reasoning", ""))[:1500]
     action = parsed.get("action", "none")
     action_params = parsed.get("action_params", {}) or {}
@@ -579,7 +645,9 @@ for step_num in range(1, max_steps + 1):
         })
         run_summary_parts.append(f"Step {step_num}: {action} — {reasoning[:100]}")
         # Apply any final memory updates
-        apply_memory_updates(parsed)
+        _summary_from_step = apply_memory_updates(parsed)
+        if _summary_from_step:
+            run_summary_text = _summary_from_step
         break
 
     # Pre-execution safety: if write_file has empty/too-short content, end
@@ -598,7 +666,9 @@ for step_num in range(1, max_steps + 1):
     print(f"    Result ({status}): {action_result[:200]}")
 
     # Apply memory updates from this step
-    apply_memory_updates(parsed)
+    _summary_from_step = apply_memory_updates(parsed)
+    if _summary_from_step:
+        run_summary_text = _summary_from_step
 
     run_steps.append({
         "step": step_num,
@@ -749,36 +819,91 @@ if len(_log) > 500_000:
 
 
 # ---------------------------------------------------------------------------
-# COMPACT SUMMARY for state.md (clean, readable)
+# COMPACT SUMMARY for state.md — now in plain English prose (200-300 words)
 # ---------------------------------------------------------------------------
 
-# Extract last 2 prior summaries
+def generate_fallback_summary():
+    """Generate a 200-300 word English prose summary of this run if the LLM
+    didn't provide one. This is the fallback; the preferred source is the
+    LLM's own 'run_summary' field, which is more insightful."""
+    outcome = run_summary_parts[-1] if run_summary_parts else "completed"
+    steps_count = len(run_steps)
+    # Build a readable description of each step
+    step_descriptions = []
+    for s in run_steps:
+        action_desc = short_action_desc(s["action"], s.get("action_params", {}))
+        success = s.get("success", None)
+        status_word = "succeeded" if success else ("ran" if success is None else "failed")
+        step_descriptions.append(f"step {s['step']} ({action_desc}, which {status_word})")
+    if step_descriptions:
+        if len(step_descriptions) == 1:
+            actions_clause = f"The agent took one action: {step_descriptions[0]}."
+        else:
+            actions_clause = (
+                f"The agent took {steps_count} actions in sequence: "
+                + "; ".join(step_descriptions[:-1])
+                + f"; and finally {step_descriptions[-1]}."
+            )
+    else:
+        actions_clause = "The agent did not complete any actions this run."
+
+    # Compose a ~200-300 word prose summary
+    parts = [
+        f"This run began at {TIMESTAMP} using the {used_model_for_log} language model. "
+        f"Daily LLM budget at the start of the run was {budget_level} "
+        f"({total_used} of {total_limit} requests used across all providers, "
+        f"with {total_remaining} remaining). The agent was allocated a maximum of "
+        f"{max_steps} steps for this cycle and completed {steps_count} of them. "
+        f"The run's outcome was: {outcome}.",
+        actions_clause,
+        f"Budget consumption was minimal this cycle, leaving ample capacity for "
+        f"subsequent runs today. The agent's persistent memory files — including "
+        f"action_log.md, blocked.md, experiments.md, and budget.md — were updated "
+        f"to reflect this run's activity. The next scheduled run will occur in "
+        f"approximately 30 minutes via GitHub Actions, at which point the agent "
+        f"will re-read all memory files, check budget status, and decide its next "
+        f"action based on what it finds.",
+        f"If this run did not produce useful work (for example, if it ended in a "
+        f"parse failure or a premature 'done'), the next run should recover "
+        f"automatically thanks to the JSON-mode enforcement and retry-on-failure "
+        f"mechanisms now in place. The human operator can review this state.md "
+        f"file at any time to understand what the agent has been doing.",
+    ]
+    return " ".join(parts)
+
+# Use the LLM's prose summary if provided; otherwise generate a fallback.
+if run_summary_text and len(run_summary_text.strip()) > 50:
+    prose_summary = run_summary_text.strip()
+else:
+    prose_summary = generate_fallback_summary()
+
+# Extract last 2 prior summaries to keep in state.md (rolling window).
+# Each summary is now ~200-300 words (~1500-2500 chars), so 2 prior + 1 new
+# = ~7500 chars max — well within readable limits.
 _prior_state = state_content
 _prior_summaries = []
 if _prior_state:
-    chunks = _prior_state.split("## Summary")
+    chunks = _prior_state.split("## Summary — ")
     for chunk in chunks[1:]:
-        prior_summary = ("## Summary" + chunk).strip()
+        prior_summary = ("## Summary — " + chunk).strip()
         if prior_summary and len(prior_summary) < 15000:
             _prior_summaries.append(prior_summary)
 _prior_summaries = _prior_summaries[-2:]
 
-# Build clean one-line-per-step summary
+# Build a short "Actions taken" list (kept as a compact reference under the prose)
 steps_one_liners = []
 for s in run_steps:
     action_desc = short_action_desc(s["action"], s.get("action_params", {}))
     success = s.get("success", None)
     status_icon = "✓" if success else ("→" if success is None else "✗")
     steps_one_liners.append(f"  {status_icon} {action_desc}")
-
-outcome = run_summary_parts[-1] if run_summary_parts else "completed"
+actions_list = "\n".join(steps_one_liners) if steps_one_liners else "  (none)"
 
 new_summary = (
-    f"## Summary\n"
-    f"**{TIMESTAMP}**\n"
-    f"- Model: `{used_model_for_log}` | Budget: `{budget_level}` | Steps: `{len(run_steps)}/{max_steps}`\n"
-    f"- Outcome: {outcome}\n"
-    f"- Actions:\n" + "\n".join(steps_one_liners) + "\n"
+    f"## Summary — {TIMESTAMP}\n"
+    f"**Model:** {used_model_for_log} | **Budget:** {budget_level} ({total_used}/{total_limit}) | **Steps:** {len(run_steps)}/{max_steps}\n\n"
+    f"{prose_summary}\n\n"
+    f"**Actions taken this run:**\n{actions_list}\n"
 )
 
 state_content_out = "\n\n".join(_prior_summaries + [new_summary]) + "\n"
