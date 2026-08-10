@@ -133,8 +133,65 @@ opportunities_content = read_file("memory/opportunities.md")
 competitions_content  = read_file("memory/competitions.md")
 human_actions_content = read_file("memory/human_actions.md")
 credentials_content   = read_file("memory/credentials.md")
-action_log_tail     = read_file("memory/action_log.md")[-6000:]
+# NOTE: Only feed the last ~1.5KB of the action log to the LLM (was 6KB).
+# A long tail full of repetitive `list_dir` entries biases the LLM to keep
+# doing the same thing — a feedback loop. A short tail gives recent context
+# without poisoning the prompt.
+action_log_tail     = read_file("memory/action_log.md")[-1500:]
 business_prompt     = read_file("prompts/business_prompt.md")
+
+# ---------------------------------------------------------------------------
+# Cross-run loop detection
+# ---------------------------------------------------------------------------
+# Count how many of the most recent runs in action_log.md all started with
+# `list_dir docs/tools/` (the degenerate first-action we keep falling into).
+# If >= 3, we add a hard "do NOT list_dir" instruction to the prompt.
+_recent_runs = []
+_log_full = read_file("memory/action_log.md")
+# Split on "## Run " markers; each chunk after the first is one run.
+# The log has TWO "Step 1:" formats depending on age:
+#   Old: "  Step 1: action=list_dir | result=Contents of docs/tools/:"
+#   New: "  ✓ Step 1: write_file → docs/tools/foo.html (1234 chars)"
+# We handle both by matching "Step 1:" then extracting the action word that
+# follows it, regardless of whether there's an "action=" prefix.
+for chunk in _log_full.split("## Run ")[1:]:
+    step1_action = ""
+    step1_path = ""
+    for ln in chunk.splitlines():
+        # Match lines like "  Step 1:" or "  - Step 1:" or "  ✓ Step 1:"
+        if not re.search(r"Step\s*1\s*:", ln):
+            continue
+        # Try "action=list_dir" format (old log)
+        m = re.search(r"action\s*=\s*(\w+)", ln)
+        if m:
+            step1_action = m.group(1).lower()
+        else:
+            # Try "Step 1: list_dir" or "Step 1: write_file" format (new log)
+            m = re.search(r"Step\s*1\s*:\s*\(?\s*(\w+)", ln)
+            if m:
+                step1_action = m.group(1).lower()
+        # Detect path "docs/tools" anywhere on the line.
+        if "list_dir" in ln and "docs/tools" in ln:
+            step1_path = "docs/tools"
+        break
+    if step1_action:
+        _recent_runs.append((step1_action, step1_path))
+_recent_runs = _recent_runs[-5:]  # only care about last 5 runs
+_repeated_listdir_count = sum(
+    1 for a, p in _recent_runs if a == "list_dir" and p == "docs/tools"
+)
+_loop_warning = ""
+if _repeated_listdir_count >= 2:
+    _loop_warning = (
+        f"\n\n=== ⚠️ ANTI-LOOP WARNING ===\n"
+        f"Your previous {_repeated_listdir_count} runs ALL started with "
+        f"`list_dir docs/tools/` and then got killed by the loop detector. "
+        f"That action is FORBIDDEN as your first action this run. "
+        f"Pick a different action: write_file a NEW tool, append_doc an "
+        f"existing page, log_opportunity, or `done`. Do NOT list_dir.\n"
+    )
+    print(f"[{TIMESTAMP}] Anti-loop: detected {_repeated_listdir_count} "
+          f"repeated list_dir runs. Adding FORBIDDEN instruction to prompt.")
 
 if not business_prompt.strip():
     append_file("memory/blocked.md", f"\n[{TIMESTAMP}] business_prompt.md is empty or missing.\n")
@@ -278,9 +335,9 @@ Available providers (with budget): {', '.join(list_available_providers()) or 'NO
 === ANALYTICS ===
 {analytics_content}
 
-=== RECENT ACTION LOG (last 6KB) ===
+=== RECENT ACTION LOG (last 1.5KB) ===
 {action_log_tail}
-
+{_loop_warning}
 {RESPONSE_FORMAT_INSTRUCTIONS}
 """
 
@@ -332,23 +389,25 @@ def parse_response(content):
     # Try strict parse first
     try:
         parsed = json.loads(json_candidate)
-        # Even with valid JSON, override "none" to "list_dir" — none is useless
+        # "none" is no longer overridden to list_dir — that caused the loop.
+        # Treat "none" as "done" (clean end-of-run) instead of falling back
+        # to a useless directory listing.
         if parsed.get("action") == "none":
-            parsed["action"] = "list_dir"
-            if not parsed.get("action_params"):
-                parsed["action_params"] = {"path": "docs/tools"}
-            elif not parsed.get("action_params", {}).get("path"):
-                parsed["action_params"]["path"] = "docs/tools"
+            parsed["action"] = "done"
         return parsed
     except (json.JSONDecodeError, ValueError):
         pass
 
     # Try to extract fields individually from partial/truncated JSON
-    # This handles the case where the LLM output got cut off mid-JSON
+    # This handles the case where the LLM output got cut off mid-JSON.
+    # SAFER DEFAULT: "done" instead of "list_dir docs/tools". The old default
+    # caused the agent to keep re-listing the same directory every time the
+    # LLM emitted bad JSON, which is what produced the loop. "done" ends the
+    # run cleanly and waits for the next cycle.
     extracted = {
         "reasoning": "",
-        "action": "list_dir",  # SAFE DEFAULT: list_dir never fails, gives agent info
-        "action_params": {"path": "docs/tools"},
+        "action": "done",
+        "action_params": {},
         "revenue_update": "",
         "pending_request": "",
         "blocked_note": "",
@@ -412,22 +471,22 @@ def parse_response(content):
                         content = content + "\n\n<!-- FILE INCOMPLETE: agent will continue in next cycle. Use append_doc to add more. -->\n"
                     extracted["action_params"] = {"path": path, "content": content}
                 else:
-                    # Content too short — fall back to list_dir
-                    extracted["action"] = "list_dir"
-                    extracted["action_params"] = {"path": "docs/tools"}
+                    # Content too short — end the run cleanly.
+                    extracted["action"] = "done"
+                    extracted["action_params"] = {}
             else:
-                # No content found — fall back to list_dir
-                extracted["action"] = "list_dir"
-                extracted["action_params"] = {"path": "docs/tools"}
+                # No content found — end the run cleanly.
+                extracted["action"] = "done"
+                extracted["action_params"] = {}
         else:
-            # No path found — fall back to list_dir
-            extracted["action"] = "list_dir"
-            extracted["action_params"] = {"path": "docs/tools"}
+            # No path found — end the run cleanly.
+            extracted["action"] = "done"
+            extracted["action_params"] = {}
 
-    # If action is none, override to list_dir (none is useless)
+    # If action is none, treat as done (was: list_dir docs/tools — caused loop)
     if extracted["action"] == "none":
-        extracted["action"] = "list_dir"
-        extracted["action_params"] = {"path": "docs/tools"}
+        extracted["action"] = "done"
+        extracted["action_params"] = {}
 
     # Log the parse failure for debugging
     if not extracted["reasoning"]:
@@ -523,13 +582,15 @@ for step_num in range(1, max_steps + 1):
         apply_memory_updates(parsed)
         break
 
-    # Pre-execution safety: if write_file has empty/too-short content, fall back to list_dir
+    # Pre-execution safety: if write_file has empty/too-short content, end
+    # the run cleanly. (Was: fall back to list_dir docs/tools — that fallback
+    # was a major contributor to the loop.)
     if action == "write_file":
         content_check = action_params.get("content", "")
         if not content_check or len(content_check) < 20:
-            print(f"    write_file content too short ({len(content_check)} chars), falling back to list_dir")
-            action = "list_dir"
-            action_params = {"path": "docs/tools"}
+            print(f"    write_file content too short ({len(content_check)} chars), ending run")
+            action = "done"
+            action_params = {}
 
     # Execute the action
     success, action_result = tools.execute_action(action, action_params)
@@ -568,15 +629,27 @@ for step_num in range(1, max_steps + 1):
     messages.append({"role": "user", "content": feedback})
 
     # Detect repeated identical actions (infinite loop prevention)
-    # Count how many times the most recent action has been taken this cycle
+    # Count how many times the most recent action has been taken this cycle.
+    # LOWERED from 2 to 2 (kept), but also detect repeated actions even when
+    # the path differs slightly — e.g. two list_dirs in a row on any path.
     current_action = run_steps[-1]["action"]
     current_path = run_steps[-1].get("action_params", {}).get("path", "")
     repeat_count = sum(1 for s in run_steps
                        if s["action"] == current_action
                        and s.get("action_params", {}).get("path", "") == current_path)
-    if repeat_count >= 2:
-        print(f"    Detected repeated action ({current_action} {current_path} taken {repeat_count}x) — stopping to prevent loop.")
-        run_summary_parts.append(f"Stopped: repeated action ({current_action} {current_path}).")
+    # ALSO break if the same action type happened twice in a row, regardless
+    # of params — e.g. two list_dirs, two read_files. This prevents the
+    # agent from bouncing between slightly different list_dir calls.
+    consecutive_same_type = 1
+    if len(run_steps) >= 2 and run_steps[-2]["action"] == current_action:
+        consecutive_same_type = 2
+    if repeat_count >= 2 or consecutive_same_type >= 2:
+        print(f"    Detected repeated action ({current_action} {current_path} "
+              f"taken {repeat_count}x, consecutive same-type={consecutive_same_type}) "
+              f"— stopping to prevent loop.")
+        run_summary_parts.append(
+            f"Stopped: repeated action ({current_action} {current_path})."
+        )
         break
 
 else:
