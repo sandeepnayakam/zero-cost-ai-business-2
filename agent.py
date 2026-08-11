@@ -133,11 +133,7 @@ opportunities_content = read_file("memory/opportunities.md")
 competitions_content  = read_file("memory/competitions.md")
 human_actions_content = read_file("memory/human_actions.md")
 credentials_content   = read_file("memory/credentials.md")
-# NOTE: Only feed the last ~1.5KB of the action log to the LLM (was 6KB).
-# A long tail full of repetitive `list_dir` entries biases the LLM to keep
-# doing the same thing — a feedback loop. A short tail gives recent context
-# without poisoning the prompt.
-action_log_tail     = read_file("memory/action_log.md")[-1500:]
+action_log_tail     = read_file("memory/action_log.md")[-2000:]
 business_prompt     = read_file("prompts/business_prompt.md")
 
 # ---------------------------------------------------------------------------
@@ -206,21 +202,21 @@ if not business_prompt.strip():
 RESPONSE_FORMAT_INSTRUCTIONS = """You MUST respond with ONLY a single JSON object. No prose before or after. No markdown fences. The very first character of your response MUST be `{`.
 
 CRITICAL RULES (read carefully):
-1. Keep "reasoning" UNDER 300 CHARS (2-3 sentences max). Do NOT think out loud — the reasoning field is for a brief note only.
+1. Keep "reasoning" UNDER 3000 CHARS (2-3 sentences max). Do NOT think out loud — the reasoning field is for a brief note only.
 2. Keep "content" for write_file UNDER 12000 CHARS. You can write a full, functional HTML tool page in one shot. If you need more, use append_doc in a later step.
 3. NEVER use "none" — always do something concrete.
 4. DO NOT repeat actions you already took this cycle (see "ACTIONS TAKEN THIS CYCLE" in feedback).
 5. After listing a directory ONCE, you know what's there — don't list it again. Move on to write_file or another action.
-6. ALWAYS include "run_summary" on your LAST action of the run (especially when action is "done"). It must be 200-300 words of plain English prose — complete sentences, no bullet points, no JSON. The human operator reads this to understand what you did.
+6. ALWAYS include "run_summary" on your LAST action of the run (especially when action is "done"). It must be 150-200 words of plain English prose — complete sentences, no bullet points, no JSON. The human operator reads this to understand what you did.
 
 JSON shape:
 {
-  "reasoning": "<2-3 sentences MAX. UNDER 300 CHARS.>",
+  "reasoning": "<2-3 sentences MAX. UNDER 3000 CHARS.>",
   "action": "write_file" | "read_file" | "list_dir" | "delete_file" | "append_doc" | "http_get" | "log_experiment" | "update_experiment" | "solve_captcha" | "check_wallet_balance" | "check_all_wallets" | "log_opportunity" | "log_revenue" | "request_human_action" | "done",
   "action_params": {
     "path": "<MUST start with docs/ or memory/>",
     "content": "<for write_file - UP TO 12000 CHARS, full functional HTML>",
-    "append_text": "<for append_doc - UP TO 6000 CHARS>",
+    "append_text": "<for append_doc - UP TO 60000 CHARS>",
     "url": "<for http_get>",
     "hypothesis": "<for log_experiment>",
     "setup": "<for log_experiment>",
@@ -249,11 +245,11 @@ JSON shape:
   "blocked_note": "<blocker to log, or empty string>",
   "experiment_result": "<experiment result to log, or empty string>",
   "analytics_update": "<metric to log, or empty string>",
-  "run_summary": "<PLAIN ENGLISH PROSE, 200-300 words, summarizing what you did this run, what worked, what failed, and what you plan to do next cycle. Write in complete sentences — NOT bullet points, NOT JSON. This is saved to memory/state.md for the human operator to read. Always include this field on your LAST action of the run (especially on 'done').>"
+  "run_summary": "<PLAIN ENGLISH PROSE, 150-200 words, summarizing what you did this run, what worked, what failed, and what you plan to do next cycle. Write in complete sentences — NOT bullet points, NOT JSON. This is saved to memory/state.md for the human operator to read. Always include this field on your LAST action of the run (especially on 'done').>"
 }
 
 ACTION TYPES:
-  - "write_file": Create/overwrite a file under docs/. CONTENT UP TO 12000 CHARS — write a complete, functional HTML page.
+  - "write_file": Create/overwrite a file under docs/. CONTENT UP TO 1200000 CHARS — write a complete, functional HTML page.
   - "append_doc": Add content to an existing file under docs/.
   - "read_file": Read a file under docs/ or memory/.
   - "list_dir": List a directory. DO THIS AT MOST ONCE PER CYCLE.
@@ -568,7 +564,7 @@ for step_num in range(1, max_steps + 1):
     for llm_attempt in (1, 2):
         try:
             response_content, used_provider, attempts = call_llm_with_fallback(
-                messages, max_tokens=40000, temperature=0.7
+                messages, max_tokens=400000, temperature=0.7
             )
             used_model_for_log = used_provider
             if step_num == 1:
