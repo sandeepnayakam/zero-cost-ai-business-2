@@ -772,7 +772,7 @@ def short_action_desc(action, params):
         return action
     return action
 
-def short_result(result, limit=100):
+def short_result(result, limit=280):
     """Truncate result to a readable length."""
     result = result or ""
     result = result.replace("\n", " ").strip()
@@ -785,7 +785,7 @@ steps_lines = []
 for s in run_steps:
     step_num = s["step"]
     action_desc = short_action_desc(s["action"], s.get("action_params", {}))
-    result_short = short_result(s.get("result", ""), 120)
+    result_short = short_result(s.get("result", ""), 280)
     success = s.get("success", None)
     status_icon = "✓" if success else ("→" if success is None else "✗")
     steps_lines.append(f"  {status_icon} Step {step_num}: {action_desc}")
