@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Live Preview - Free Online Markdown Editor</title>
+  <meta name="description" content="Free online live Markdown editor and HTML previewer. Convert Markdown to clean HTML instantly in your browser with real-time stats and copy/export options.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .editor-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    @media (max-width: 768px) {
+      .editor-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .pane {
+      display: flex;
+      flex-direction: column;
+    }
+    .pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    textarea#markdown-input {
+      width: 100%;
+      height: 380px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      resize: vertical;
+      box-sizing: border-box;
+      background: #f8fafc;
+    }
+    .preview-box {
+      width: 100%;
+      height: 380px;
+      padding: 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow-y: auto;
+      background: #ffffff;
+      box-sizing: border-box;
+    }
+    .preview-box h1, .preview-box h2, .preview-box h3 { margin-top: 0.5rem; }
+    .preview-box pre { background: #f1f5f9; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .preview-box code { font-family: monospace; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; }
+    .preview-box blockquote { border-left: 4px solid #3b82f6; margin: 0; padding-left: 1rem; color: #475569; }
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 4px;
+    }
+    .btn-sm:hover {
+      background: #f1f5f9;
+    }
+    .tip-box {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">⚡<span>FreeTools</span></a>
+    <nav>
+      <a href="/tools/">Tools</a>
+      <a href="/guides/crypto-tips.html">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <h1>Markdown Live Preview & Editor</h1>
+  <p class="subtitle">Instant client-side Markdown rendering, character counting, and clean HTML conversion.</p>
+
+  <div class="stats-bar">
+    <span>Words: <strong id="word-count">0</strong></span>
+    <span>Characters: <strong id="char-count">0</strong></span>
+    <span>Lines: <strong id="line-count">0</strong></span>
+  </div>
+
+  <div class="editor-container">
+    <div class="pane">
+      <div class="pane-header">
+        <span>Markdown Input</span>
+        <button class="btn-sm" id="clear-btn">Clear</button>
+      </div>
+      <textarea id="markdown-input" placeholder="Type or paste Markdown here..."># Markdown Live Preview&#10;&#10;Write **bold**, *italic*, or `inline code`.&#10;&#10;### Features:&#10;- Fast client-side rendering&#10;- Export HTML directly&#10;- Zero data sent to servers&#10;&#10;> Autonomous zero-cost web tooling.&#10;&#10;```javascript&#10;console.log("Hello world!");&#10;```</textarea>
+      <div class="btn-group">
+        <button class="btn-sm" id="sample-btn">Insert Sample</button>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="pane-header">
+        <span>HTML Preview</span>
+        <button class="btn-sm" id="copy-html-btn">Copy HTML</button>
+      </div>
+      <div id="preview" class="preview-box"></div>
+      <div class="btn-group">
+        <button class="btn-sm" id="download-html-btn">Download HTML</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <h2>Found this tool useful?</h2>
+    <p>This tool is built and maintained autonomously. If it saved you time, consider supporting future development with a small crypto tip!</p>
+    <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto (BTC/ETH/SOL/USDT)</a>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built autonomously by zero-cost AI agents. Free, open tools for everyone.</p>
+  </div>
+</footer>
+
+<script>
+function parseMarkdown(md) {
+  let html = md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+  html = html.replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>');
+  html = html.replace(/`([^`]+)`/gim, '<code>$1</code>');
+  html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+  html = html.replace(/~~(.*?)~~/gim, '<del>$1</del>');
+  html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+  html = html.replace(/\n\n/gim, '<br><br>');
+  return html.trim();
+}
+
+const input = document.getElementById('markdown-input');
+const preview = document.getElementById('preview');
+const wordCount = document.getElementById('word-count');
+const charCount = document.getElementById('char-count');
+const lineCount = document.getElementById('line-count');
+
+function update() {
+  const text = input.value;
+  preview.innerHTML = parseMarkdown(text);
+  charCount.textContent = text.length;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  wordCount.textContent = words;
+  lineCount.textContent = text.length ? text.split('\n').length : 0;
+}
+
+input.addEventListener('input', update);
+update();
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  input.value = '';
+  update();
+});
+
+document.getElementById('sample-btn').addEventListener('click', () => {
+  input.value = '# Sample Heading\n\nThis is a sample document with **bold text** and `code`.\n\n- Item 1\n- Item 2\n- Item 3';
+  update();
+});
+
+document.getElementById('copy-html-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(preview.innerHTML).then(() => {
+    alert('Rendered HTML copied to clipboard!');
+  });
+});
+
+document.getElementById('download-html-btn').addEventListener('click', () => {
+  const blob = new Blob([preview.innerHTML], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'document.html';
+  a.click();
+});
+</script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
