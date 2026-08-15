@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Online Text Diff Checker &amp; Comparison Tool</title>
+  <meta name="description" content="Compare two text strings or code snippets side-by-side to highlight additions, deletions, and differences instantly in your browser. 100% private and client-side.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .diff-container { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+    .diff-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 768px) { .diff-inputs { grid-template-columns: 1fr; } }
+    .input-box { display: flex; flex-direction: column; gap: 0.5rem; }
+    textarea.code-area {
+      width: 100%; height: 220px; font-family: monospace; font-size: 0.9rem; padding: 0.75rem;
+      border: 1px solid #cbd5e1; border-radius: 6px; resize: vertical; box-sizing: border-box;
+      background: #f8fafc; color: #0f172a;
+    }
+    .diff-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+    .diff-output-box {
+      border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; overflow-x: auto;
+      font-family: monospace; font-size: 0.88rem; line-height: 1.5;
+    }
+    .diff-line { display: flex; padding: 2px 8px; white-space: pre-wrap; word-break: break-all; }
+    .diff-added { background-color: #dcfce7; color: #166534; }
+    .diff-removed { background-color: #fee2e2; color: #991b1b; }
+    .diff-unchanged { color: #475569; }
+    .line-num { min-width: 40px; color: #94a3b8; user-select: none; text-align: right; margin-right: 12px; }
+    .diff-stat { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+    .stat-added { background: #dcfce7; color: #166534; }
+    .stat-removed { background: #fee2e2; color: #991b1b; }
+    .tip-box { margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">⚡<span>FreeTools</span></a>
+    <nav>
+      <a href="/tools/">Tools</a>
+      <a href="/guides/crypto-tips.html">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <h1>Text Diff Checker</h1>
+  <p class="subtitle">Quickly compare two texts or code files and see exact additions, deletions, and differences. Processed completely in your browser for absolute privacy.</p>
+
+  <div class="diff-container">
+    <div class="diff-inputs">
+      <div class="input-box">
+        <label for="originalText"><strong>Original Text</strong></label>
+        <textarea id="originalText" class="code-area" placeholder="Paste original text or code here...">function calculateTotal(items) {
+  let total = 0;
+  for (let i = 0; i < items.length; i++) {
+    total += items[i].price;
+  }
+  return total;
+}</textarea>
+      </div>
+      <div class="input-box">
+        <label for="modifiedText"><strong>Modified Text</strong></label>
+        <textarea id="modifiedText" class="code-area" placeholder="Paste modified text or code here...">function calculateTotal(items, discount = 0) {
+  let total = items.reduce((sum, item) => sum + item.price, 0);
+  return total * (1 - discount);
+}</textarea>
+      </div>
+    </div>
+
+    <div class="diff-actions">
+      <button id="compareBtn" class="btn btn-primary">Compare Diff</button>
+      <button id="swapBtn" class="btn btn-secondary">Swap Texts</button>
+      <button id="clearBtn" class="btn btn-secondary">Clear All</button>
+      <span id="diffSummary" style="margin-left: auto; display: flex; gap: 0.5rem;"></span>
+    </div>
+
+    <div id="diffResult" class="diff-output-box" style="display: none;"></div>
+  </div>
+
+  <section style="margin-top: 3rem;">
+    <h2>Features &amp; Security</h2>
+    <p>Our Diff Checker processes everything directly within your local browser sandbox. No text, code, or personal data is ever transmitted to external servers, making it completely safe for proprietary code, sensitive configurations, and confidential documents.</p>
+  </section>
+
+  <div class="tip-box">
+    <h2>Found this tool useful?</h2>
+    <p>This platform is completely free and maintained autonomously. If it saved you time, consider tipping with crypto to keep the servers running.</p>
+    <a href="/guides/crypto-tips.html" class="btn btn-primary" style="display: inline-block; margin-top: 0.5rem;">Tip via Crypto</a>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built autonomously by AI. Zero ads, privacy-focused utilities.</p>
+  </div>
+</footer>
+
+<script>
+function computeLineDiff(original, modified) {
+  const origLines = original.split('\n');
+  const modLines = modified.split('\n');
+  const diff = [];
+  let i = 0, j = 0;
+
+  while (i < origLines.length || j < modLines.length) {
+    if (i < origLines.length && j < modLines.length) {
+      if (origLines[i] === modLines[j]) {
+        diff.push({ type: 'unchanged', line: origLines[i], origNum: i + 1, modNum: j + 1 });
+        i++; j++;
+      } else {
+        let lookaheadOrig = modLines.indexOf(origLines[i], j);
+        let lookaheadMod = origLines.indexOf(modLines[j], i);
+        if (lookaheadOrig !== -1 && (lookaheadMod === -1 || lookaheadOrig - j < lookaheadMod - i)) {
+          diff.push({ type: 'added', line: modLines[j], modNum: j + 1 });
+          j++;
+        } else if (lookaheadMod !== -1) {
+          diff.push({ type: 'removed', line: origLines[i], origNum: i + 1 });
+          i++;
+        } else {
+          diff.push({ type: 'removed', line: origLines[i], origNum: i + 1 });
+          diff.push({ type: 'added', line: modLines[j], modNum: j + 1 });
+          i++; j++;
+        }
+      }
+    } else if (i < origLines.length) {
+      diff.push({ type: 'removed', line: origLines[i], origNum: i + 1 });
+      i++;
+    } else {
+      diff.push({ type: 'added', line: modLines[j], modNum: j + 1 });
+      j++;
+    }
+  }
+  return diff;
+}
+
+function renderDiff() {
+  const orig = document.getElementById('originalText').value;
+  const mod = document.getElementById('modifiedText').value;
+  const diff = computeLineDiff(orig, mod);
+  const output = document.getElementById('diffResult');
+  const summary = document.getElementById('diffSummary');
+
+  let addedCount = 0;
+  let removedCount = 0;
+  let html = '';
+
+  diff.forEach(item => {
+    if (item.type === 'added') {
+      addedCount++;
+      html += `<div class="diff-line diff-added"><span class="line-num">+</span><span>${escapeHtml(item.line) || '&nbsp;'}</span></div>`;
+    } else if (item.type === 'removed') {
+      removedCount++;
+      html += `<div class="diff-line diff-removed"><span class="line-num">-</span><span>${escapeHtml(item.line) || '&nbsp;'}</span></div>`;
+    } else {
+      html += `<div class="diff-line diff-unchanged"><span class="line-num">${item.origNum}</span><span>${escapeHtml(item.line) || '&nbsp;'}</span></div>`;
+    }
+  });
+
+  output.innerHTML = html;
+  output.style.display = 'block';
+  summary.innerHTML = `<span class="diff-stat stat-added">+${addedCount} lines</span><span class="diff-stat stat-removed">-${removedCount} lines</span>`;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+document.getElementById('compareBtn').addEventListener('click', renderDiff);
+document.getElementById('swapBtn').addEventListener('click', () => {
+  const orig = document.getElementById('originalText');
+  const mod = document.getElementById('modifiedText');
+  const temp = orig.value;
+  orig.value = mod.value;
+  mod.value = temp;
+  renderDiff();
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('originalText').value = '';
+  document.getElementById('modifiedText').value = '';
+  document.getElementById('diffResult').style.display = 'none';
+  document.getElementById('diffSummary').innerHTML = '';
+});
+
+// Run initial comparison on page load
+renderDiff();
+</script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
