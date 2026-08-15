@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethereum Unit Converter (Wei, Gwei, Ether) - Free Developer Tool</title>
+  <meta name="description" content="Free online Ethereum unit converter. Instantly convert between Wei, Kwei, Mwei, Gwei, Szabo, Finney, and Ether with high precision and zero data collection.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .converter-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 24px 0; }
+    .unit-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    @media (min-width: 640px) { .unit-grid { grid-template-columns: repeat(2, 1fr); } }
+    .unit-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .unit-header { display: flex; justify-content: space-between; align-items: center; }
+    .unit-name { font-weight: 600; color: #f8fafc; font-size: 0.95rem; }
+    .unit-power { font-size: 0.75rem; color: #94a3b8; font-family: monospace; }
+    .unit-input-wrapper { display: flex; gap: 8px; }
+    .unit-input { flex: 1; background: #1e293b; border: 1px solid #475569; color: #38bdf8; padding: 10px 12px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; }
+    .unit-input:focus { outline: none; border-color: #38bdf8; }
+    .btn-copy-unit { background: #334155; color: #f8fafc; border: none; padding: 0 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; }
+    .btn-copy-unit:hover { background: #475569; }
+    .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    .btn-quick { background: #334155; color: #94a3b8; border: 1px solid #475569; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .btn-quick:hover { background: #475569; color: #f8fafc; }
+    .tip-box { background: #0f172a; border: 1px dashed #38bdf8; border-radius: 12px; padding: 20px; text-align: center; margin-top: 32px; }
+    .explainer { margin-top: 32px; color: #cbd5e1; line-height: 1.6; }
+    .explainer h2 { color: #f8fafc; font-size: 1.3rem; margin-top: 20px; }
+    .explainer table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9rem; }
+    .explainer th, .explainer td { border: 1px solid #334155; padding: 8px 12px; text-align: left; }
+    .explainer th { background: #1e293b; color: #f8fafc; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>Ethereum Unit Converter</h1>
+    <p class="subtitle">Instant, precise bi-directional conversion between Wei, Gwei, Ether, Szabo, Finney, and all EVM denominations.</p>
+
+    <div class="converter-card">
+      <div class="quick-actions">
+        <span style="color:#94a3b8; font-size:0.85rem; align-self:center;">Quick Presets:</span>
+        <button class="btn-quick" onclick="setEther('1')">1 ETH</button>
+        <button class="btn-quick" onclick="setEther('0.1')">0.1 ETH</button>
+        <button class="btn-quick" onclick="setGwei('20')">20 Gwei (Std Gas)</button>
+        <button class="btn-quick" onclick="setGwei('50')">50 Gwei (High Gas)</button>
+        <button class="btn-quick" onclick="setWei('21000')">21,000 Wei (Transfer)</button>
+        <button class="btn-quick" onclick="clearAll()">Clear All</button>
+      </div>
+
+      <div class="unit-grid">
+        <div class="unit-item">
+          <div class="unit-header">
+            <span class="unit-name">Wei (wei)</span>
+            <span class="unit-power">10⁰ Wei (Base)</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-wei" class="unit-input" placeholder="0" oninput="convertFrom('wei', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-wei')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item">
+          <div class="unit-header">
+            <span class="unit-name">Kwei / Babbage</span>
+            <span class="unit-power">10³ Wei</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-kwei" class="unit-input" placeholder="0" oninput="convertFrom('kwei', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-kwei')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item">
+          <div class="unit-header">
+            <span class="unit-name">Mwei / Lovelace</span>
+            <span class="unit-power">10⁶ Wei</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-mwei" class="unit-input" placeholder="0" oninput="convertFrom('mwei', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-mwei')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item" style="border-color: #38bdf8;">
+          <div class="unit-header">
+            <span class="unit-name" style="color:#38bdf8;">Gwei / Shannon (Gas Unit)</span>
+            <span class="unit-power">10⁹ Wei</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-gwei" class="unit-input" placeholder="0" oninput="convertFrom('gwei', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-gwei')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item">
+          <div class="unit-header">
+            <span class="unit-name">Szabo / Microether</span>
+            <span class="unit-power">10¹² Wei</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-szabo" class="unit-input" placeholder="0" oninput="convertFrom('szabo', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-szabo')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item">
+          <div class="unit-header">
+            <span class="unit-name">Finney / Milliether</span>
+            <span class="unit-power">10¹⁵ Wei</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-finney" class="unit-input" placeholder="0" oninput="convertFrom('finney', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-finney')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item" style="border-color: #10b981;">
+          <div class="unit-header">
+            <span class="unit-name" style="color:#10b981;">Ether (ETH)</span>
+            <span class="unit-power">10¹⁸ Wei (Standard)</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-ether" class="unit-input" placeholder="0" oninput="convertFrom('ether', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-ether')">Copy</button>
+          </div>
+        </div>
+
+        <div class="unit-item">
+          <div class="unit-header">
+            <span class="unit-name">Kether / Grand / Einstein</span>
+            <span class="unit-power">10²¹ Wei</span>
+          </div>
+          <div class="unit-input-wrapper">
+            <input type="text" id="unit-kether" class="unit-input" placeholder="0" oninput="convertFrom('kether', this.value)">
+            <button class="btn-copy-unit" onclick="copyVal('unit-kether')">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="explainer">
+      <h2>Ethereum Unit Breakdown & Reference</h2>
+      <p>Ethereum uses multiple unit denominations to simplify accounting for gas fees, micro-transactions, and smart contract balances. The base denomination is <strong>Wei</strong>, named after Wei Dai, creator of b-money.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Unit Name</th>
+            <th>Alternate Name</th>
+            <th>Wei Equivalent</th>
+            <th>Ether (ETH) Equivalent</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Wei</td><td>Wei</td><td>1 Wei</td><td>10⁻¹⁸ ETH</td></tr>
+          <tr><td>Kwei</td><td>Babbage</td><td>1,000 Wei (10³)</td><td>10⁻¹⁵ ETH</td></tr>
+          <tr><td>Mwei</td><td>Lovelace</td><td>1,000,000 Wei (10⁶)</td><td>10⁻¹² ETH</td></tr>
+          <tr><td>Gwei</td><td>Shannon</td><td>1,000,000,000 Wei (10⁹)</td><td>10⁻⁹ ETH</td></tr>
+          <tr><td>Szabo</td><td>Microether</td><td>10¹² Wei</td><td>10⁻⁶ ETH</td></tr>
+          <tr><td>Finney</td><td>Milliether</td><td>10¹⁵ Wei</td><td>0.001 ETH</td></tr>
+          <tr><td>Ether</td><td>ETH</td><td>10¹⁸ Wei</td><td>1 ETH</td></tr>
+          <tr><td>Kether</td><td>Grand / Einstein</td><td>10²¹ Wei</td><td>1,000 ETH</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box">
+      <h3>Support Independent Web3 Developer Utilities</h3>
+      <p>This converter runs 100% in your browser with zero trackers or server logging. If you found it helpful, consider leaving a small tip!</p>
+      <div style="margin-top: 12px;">
+        <a href="/guides/crypto-tips.html" class="btn btn-primary">Support via Crypto Tip Jar</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built by an autonomous AI agent operating zero-cost open web utilities.</p>
+    </div>
+  </footer>
+
+  <script>
+    const DECIMALS = {
+      wei: 0,
+      kwei: 3,
+      mwei: 6,
+      gwei: 9,
+      szabo: 12,
+      finney: 15,
+      ether: 18,
+      kether: 21
+    };
+
+    function cleanInput(val) {
+      return val.replace(/,/g, '').trim();
+    }
+
+    function parseToWei(val, unit) {
+      if (!val || isNaN(val)) return null;
+      const dec = DECIMALS[unit];
+      const parts = val.split('.');
+      let whole = parts[0] || '0';
+      let frac = parts[1] || '';
+      
+      if (frac.length > dec) {
+        frac = frac.slice(0, dec);
+      }
+      const fracPadded = frac.padEnd(dec, '0');
+      let fullStr = whole + fracPadded;
+      // Remove leading zeros
+      fullStr = fullStr.replace(/^0+/, '');
+      return fullStr === '' ? '0' : fullStr;
+    }
+
+    function formatFromWei(weiStr, unit) {
+      if (!weiStr || weiStr === '0') return '0';
+      const dec = DECIMALS[unit];
+      if (dec === 0) return weiStr;
+      
+      if (weiStr.length <= dec) {
+        const padded = weiStr.padStart(dec, '0');
+        return '0.' + padded.replace(/0+$/, '') || '0';
+      } else {
+        const whole = weiStr.slice(0, weiStr.length - dec);
+        const frac = weiStr.slice(weiStr.length - dec).replace(/0+$/, '');
+        return frac.length > 0 ? whole + '.' + frac : whole;
+      }
+    }
+
+    function convertFrom(sourceUnit, val) {
+      val = cleanInput(val);
+      if (!val || isNaN(val) || Number(val) < 0) {
+        if (val === '') clearAll(sourceUnit);
+        return;
+      }
+
+      const weiVal = parseToWei(val, sourceUnit);
+      if (weiVal === null) return;
+
+      Object.keys(DECIMALS).forEach(u => {
+        if (u !== sourceUnit) {
+          const inputEl = document.getElementById('unit-' + u);
+          if (inputEl) {
+            inputEl.value = formatFromWei(weiVal, u);
+          }
+        }
+      });
+    }
+
+    function setEther(val) {
+      document.getElementById('unit-ether').value = val;
+      convertFrom('ether', val);
+    }
+
+    function setGwei(val) {
+      document.getElementById('unit-gwei').value = val;
+      convertFrom('gwei', val);
+    }
+
+    function setWei(val) {
+      document.getElementById('unit-wei').value = val;
+      convertFrom('wei', val);
+    }
+
+    function clearAll(exceptUnit) {
+      Object.keys(DECIMALS).forEach(u => {
+        if (u !== exceptUnit) {
+          const el = document.getElementById('unit-' + u);
+          if (el) el.value = '';
+        }
+      });
+    }
+
+    function copyVal(id) {
+      const el = document.getElementById(id);
+      if (el && el.value) {
+        navigator.clipboard.writeText(el.value).then(() => {
+          alert('Copied ' + el.value + ' to clipboard!');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
