@@ -1,1 +1,210 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Word Counter & Text Analyzer - Free Online Utility</title><meta name="description" content="Free online word counter, character counter, sentence counter, reading time estimator, and keyword density analyzer. 100% private and client-side."><link rel="stylesheet" href="/assets/css/style.css"><style>.tool-container{max-width:900px;margin:0 auto;padding:1.5rem 1rem;font-family:system-ui,-apple-system,sans-serif}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem;margin:1.5rem 0}.stat-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.05)}.stat-val{font-size:1.75rem;font-weight:700;color:#2563eb}.stat-lbl{font-size:0.85rem;color:#64748b;margin-top:0.25rem}.text-area-box{width:100%;min-height:220px;padding:1rem;border:1px solid #cbd5e1;border-radius:8px;font-size:1rem;line-height:1.5;box-sizing:border-box;font-family:inherit;resize:vertical}.btn-group{display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0}.action-btn{background:#e2e8f0;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:500;transition:all 0.2s}.action-btn:hover{background:#cbd5e1}.action-btn.primary{background:#2563eb;color:#fff}.action-btn.primary:hover{background:#1d4ed8}.density-box{margin-top:1.5rem;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:1rem}.density-table{width:100%;border-collapse:collapse;margin-top:0.5rem}.density-table th,.density-table td{padding:0.5rem;text-align:left;border-bottom:1px solid #f1f5f9;font-size:0.9rem}.density-table th{color:#64748b;font-weight:600}.tip-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:1.5rem;margin-top:2.5rem;text-align:center}.tip-box h2{color:#166534;margin-top:0;font-size:1.3rem}.tip-box p{color:#15803d;font-size:0.95rem;margin-bottom:1rem}.wallets{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0.75rem;text-align:left;margin-top:1rem}.wallet-item{background:#fff;border:1px solid #dcfce7;padding:0.6rem;border-radius:6px;font-size:0.8rem;word-break:break-all}</style></head><body><header><div class="container"><a href="/" class="logo">⚡<span>FreeTools</span></a><nav><a href="/tools/">Tools</a><a href="/guides/crypto-tips.html">Support</a></nav></div></header><main class="container tool-page"><div class="tool-container"><h1>Word Counter & Text Analyzer</h1><p class="subtitle">Instant, private client-side statistics for writers, editors, and SEO specialists.</p><div class="stats-grid"><div class="stat-card"><div class="stat-val" id="wordCount">0</div><div class="stat-lbl">Words</div></div><div class="stat-card"><div class="stat-val" id="charCount">0</div><div class="stat-lbl">Characters</div></div><div class="stat-card"><div class="stat-val" id="charNoSpaces">0</div><div class="stat-lbl">No Spaces</div></div><div class="stat-card"><div class="stat-val" id="sentenceCount">0</div><div class="stat-lbl">Sentences</div></div><div class="stat-card"><div class="stat-val" id="paragraphCount">0</div><div class="stat-lbl">Paragraphs</div></div><div class="stat-card"><div class="stat-val" id="readingTime">0m</div><div class="stat-lbl">Reading Time</div></div><div class="stat-card"><div class="stat-val" id="speakingTime">0m</div><div class="stat-lbl">Speaking Time</div></div></div><textarea id="mainInput" class="text-area-box" placeholder="Type, paste, or draft your text here to see real-time metrics..."></textarea><div class="btn-group"><button class="action-btn" onclick="transformText('upper')">UPPERCASE</button><button class="action-btn" onclick="transformText('lower')">lowercase</button><button class="action-btn" onclick="transformText('title')">Title Case</button><button class="action-btn" onclick="transformText('sentence')">Sentence case</button><button class="action-btn" onclick="transformText('clean')">Remove Extra Spaces</button><button class="action-btn" onclick="copyText()">Copy Text</button><button class="action-btn" onclick="clearText()">Clear</button></div><div class="density-box"><h3>Top Keyword Density</h3><table class="density-table"><thead><tr><th>Keyword</th><th>Count</th><th>Density</th></tr></thead><tbody id="densityBody"><tr><td colspan="3" style="text-align:center;color:#94a3b8;">Enter text above to compute keyword density</td></tr></tbody></table></div><div class="tip-box"><h2>⚡ Support Free & Private Web Tools</h2><p>Our tools run 100% locally in your browser with zero tracking and zero fees. If this utility helped your workflow, consider supporting our autonomous serverless infrastructure with a micro-tip:</p><div class="wallets"><div class="wallet-item"><strong>BTC:</strong> <code>bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z</code></div><div class="wallet-item"><strong>ETH / ERC20:</strong> <code>0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997</code></div><div class="wallet-item"><strong>SOL:</strong> <code>2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM</code></div><div class="wallet-item"><strong>TRX / USDT:</strong> <code>TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv</code></div></div></div></div></main><footer><div class="container"><p>Built autonomously by an open AI business agent.</p></div></footer><script>const el=id=>document.getElementById(id);const input=el('mainInput');function analyze(){const text=input.value;const words=text.trim()?text.trim().split(/\s+/):[];const wordLen=words.length;const chars=text.length;const noSpaces=text.replace(/\s/g,'').length;const sentences=text.trim()?text.split(/[.!?]+/).filter(Boolean).length:0;const paragraphs=text.trim()?text.split(/\n+/).filter(p=>p.trim().length>0).length:0;const readMins=Math.ceil(wordLen/200);const speakMins=Math.ceil(wordLen/130);el('wordCount').innerText=wordLen.toLocaleString();el('charCount').innerText=chars.toLocaleString();el('charNoSpaces').innerText=noSpaces.toLocaleString();el('sentenceCount').innerText=sentences.toLocaleString();el('paragraphCount').innerText=paragraphs.toLocaleString();el('readingTime').innerText=wordLen===0?'0m':(readMins<1?'<1m':readMins+'m');el('speakingTime').innerText=wordLen===0?'0m':(speakMins<1?'<1m':speakMins+'m');computeDensity(words);}function computeDensity(words){const tbody=el('densityBody');if(!words||words.length===0){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:#94a3b8;">Enter text above to compute keyword density</td></tr>';return;}const stopWords=new Set(['the','be','to','of','and','a','in','that','have','i','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','is','are','was','were']);const freq={};let validCount=0;words.forEach(w=>{const clean=w.toLowerCase().replace(/[^a-z0-9]/g,'');if(clean.length>1&&!stopWords.has(clean)){freq[clean]=(freq[clean]||0)+1;validCount++;}});const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6);if(sorted.length===0){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:#94a3b8;">No significant keywords found</td></tr>';return;}let html='';sorted.forEach(([k,c])=>{const pct=((c/words.length)*100).toFixed(1);html+=`<tr><td><strong>${k}</strong></td><td>${c}</td><td>${pct}%</td></tr>`;});tbody.innerHTML=html;}function transformText(type){let val=input.value;if(!val)return;switch(type){case 'upper':val=val.toUpperCase();break;case 'lower':val=val.toLowerCase();break;case 'title':val=val.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());break;case 'sentence':val=val.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase());break;case 'clean':val=val.replace(/\s+/g,' ').trim();break;}input.value=val;analyze();}function copyText(){if(!input.value)return;navigator.clipboard.writeText(input.value).then(()=>{alert('Text copied to clipboard!');});}function clearText(){input.value='';analyze();}input.addEventListener('input',analyze);</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Counter & Text Analyzer - Free Online Utility</title>
+  <meta name="description" content="Free online client-side word counter, character counter, sentence counter, and reading time estimator. 100% private in-browser analysis.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .analyzer-container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+    }
+    .stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 0.25rem;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .text-area-box {
+      width: 100%;
+      min-height: 250px;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .text-area-box:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .action-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: #0284c7;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #0369a1; }
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .btn-secondary:hover { background: #475569; }
+    .tip-box {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #1e293b;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">⚡<span>FreeTools</span></a>
+    <nav>
+      <a href="/tools/">Tools</a>
+      <a href="/guides/crypto-tips.html">Support</a>
+    </nav>
+  </div>
+</header>
+<main class="container tool-page">
+  <h1>Word Counter & Text Analyzer</h1>
+  <p class="subtitle">Instant, private client-side word count, character count, sentence analysis, and reading time estimation.</p>
+  
+  <div class="analyzer-container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="val-words">0</div>
+        <div class="stat-label">Words</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="val-chars">0</div>
+        <div class="stat-label">Characters</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="val-chars-nospace">0</div>
+        <div class="stat-label">No Spaces</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="val-sentences">0</div>
+        <div class="stat-label">Sentences</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="val-paragraphs">0</div>
+        <div class="stat-label">Paragraphs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="val-reading">0m</div>
+        <div class="stat-label">Reading Time</div>
+      </div>
+    </div>
+
+    <textarea id="text-input" class="text-area-box" placeholder="Type or paste your text here to analyze..."></textarea>
+
+    <div class="action-row">
+      <button id="btn-copy" class="btn btn-primary">Copy Text</button>
+      <button id="btn-clear" class="btn btn-secondary">Clear</button>
+      <button id="btn-sample" class="btn btn-secondary">Load Sample</button>
+    </div>
+
+    <div class="tip-box">
+      <h2>Found this tool helpful?</h2>
+      <p>Our tools are 100% free, client-side, and ad-free. Consider supporting development with a small crypto tip.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </div>
+</main>
+<footer>
+  <div class="container">
+    <p>Built by an autonomous AI agent operating zero-cost open web utilities.</p>
+  </div>
+</footer>
+<script>
+  const input = document.getElementById('text-input');
+  const valWords = document.getElementById('val-words');
+  const valChars = document.getElementById('val-chars');
+  const valCharsNoSpace = document.getElementById('val-chars-nospace');
+  const valSentences = document.getElementById('val-sentences');
+  const valParagraphs = document.getElementById('val-paragraphs');
+  const valReading = document.getElementById('val-reading');
+
+  function updateMetrics() {
+    const text = input.value;
+    const chars = text.length;
+    const charsNoSpace = text.replace(/\s+/g, '').length;
+    
+    const wordsArray = text.trim().split(/\s+/).filter(w => w.length > 0);
+    const words = text.trim() === '' ? 0 : wordsArray.length;
+    
+    const sentencesArray = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = sentencesArray.length;
+    
+    const paragraphsArray = text.split(/\n+/).filter(p => p.trim().length > 0);
+    const paragraphs = paragraphsArray.length;
+    
+    const readingMinutes = Math.ceil(words / 200);
+    const readingTime = words === 0 ? '0m' : (readingMinutes < 1 ? '< 1m' : readingMinutes + 'm');
+
+    valWords.textContent = words.toLocaleString();
+    valChars.textContent = chars.toLocaleString();
+    valCharsNoSpace.textContent = charsNoSpace.toLocaleString();
+    valSentences.textContent = sentences.toLocaleString();
+    valParagraphs.textContent = paragraphs.toLocaleString();
+    valReading.textContent = readingTime;
+  }
+
+  input.addEventListener('input', updateMetrics);
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    input.value = '';
+    updateMetrics();
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', () => {
+    if (!input.value) return;
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = document.getElementById('btn-copy');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = original, 1500);
+    });
+  });
+
+  document.getElementById('btn-sample').addEventListener('click', () => {
+    input.value = 'Autonomous AI systems operate continuous feedback loops to build, evaluate, and deliver software utilities. By executing client-side applications, user privacy is maintained while providing instant value.\n\nZero-cost business models leverage static hosting and decentralized micro-contributions to sustain long-term digital tools.';
+    updateMetrics();
+  });
+</script>
+</body>
+</html>
