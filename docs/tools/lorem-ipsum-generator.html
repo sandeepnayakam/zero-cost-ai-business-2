@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorem Ipsum Generator - Free Placeholder Dummy Text Tool</title>
+  <meta name="description" content="Generate clean, customizable Lorem Ipsum placeholder dummy text in paragraphs, sentences, words, or lists instantly in your browser.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .tool-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg, #ffffff);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .control-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: #334155;
+    }
+    .control-group input[type="number"], .control-group select {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #ffffff;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.8rem;
+    }
+    .checkbox-group input {
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+    }
+    .checkbox-group label {
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #334155;
+    }
+    .btn-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .btn-action {
+      padding: 0.65rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary-action {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .btn-primary-action:hover { background: #1d4ed8; }
+    .btn-secondary-action {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+    .btn-secondary-action:hover { background: #cbd5e1; }
+    .output-area {
+      width: 100%;
+      min-height: 250px;
+      padding: 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.6;
+      background: #fdfdfd;
+      color: #1e293b;
+      resize: vertical;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+    .tip-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      text-align: center;
+    }
+    .tip-box h3 { margin: 0 0 0.5rem 0; color: #166534; }
+    .tip-box p { color: #15803d; margin-bottom: 1rem; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">⚡<span>FreeTools</span></a>
+    <nav>
+      <a href="/tools/">Tools</a>
+      <a href="/guides/crypto-tips.html">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <div class="tool-container">
+    <h1>Lorem Ipsum Generator</h1>
+    <p class="subtitle">Quickly generate standard placeholder text for mockups, prototypes, wireframes, and design testing.</p>
+
+    <div class="controls-grid">
+      <div class="control-group">
+        <label for="count">Quantity</label>
+        <input type="number" id="count" value="5" min="1" max="100">
+      </div>
+      <div class="control-group">
+        <label for="type">Unit Type</label>
+        <select id="type">
+          <option value="paragraphs">Paragraphs</option>
+          <option value="sentences">Sentences</option>
+          <option value="words">Words</option>
+          <option value="lists">List Items</option>
+        </select>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="startWithLorem" checked>
+        <label for="startWithLorem">Start with "Lorem ipsum..."</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="asHtml">
+        <label for="asHtml">Format as HTML tags</label>
+      </div>
+    </div>
+
+    <div class="btn-actions">
+      <button class="btn-action btn-primary-action" onclick="generateLorem()">Generate Text</button>
+      <button class="btn-action btn-secondary-action" onclick="copyOutput()">Copy to Clipboard</button>
+      <button class="btn-action btn-secondary-action" onclick="clearOutput()">Clear</button>
+    </div>
+
+    <textarea id="output" class="output-area" placeholder="Generated text will appear here..." readonly></textarea>
+    
+    <div class="stats-bar">
+      <span id="wordCount">Words: 0</span>
+      <span id="charCount">Characters: 0</span>
+      <span id="statusMsg"></span>
+    </div>
+
+    <div class="tip-box">
+      <h3>Support Free Autonomous Tools</h3>
+      <p>This utility runs entirely client-side with zero tracking or ads. If it saved you time, consider leaving a small crypto tip!</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built by an autonomous AI agent. Free, instant, zero tracking.</p>
+  </div>
+</footer>
+
+<script>
+const WORDS = [
+  "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do",
+  "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim",
+  "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "aliquip",
+  "ex", "ea", "commodo", "consequat", "duis", "aute", "irure", "in", "reprehenderit", "voluptate",
+  "velit", "esse", "cillum", "fugiat", "nulla", "pariatur", "excepteur", "sint", "occaecat", "cupidatat",
+  "non", "proident", "sunt", "culpa", "qui", "officia", "deserunt", "mollit", "anim", "id", "est", "laborum",
+  "pellentesque", "habitant", "morbi", "tristique", "senectus", "netus", "malesuada", "fames", "turpis", "egestas",
+  "integer", "eget", "velit", "facilisis", "volutpat", "est", "velit", "egestas", "dui", "id", "ornare",
+  "arcu", "odio", "ut", "sem", "nulla", "pharetra", "diam", "sit", "amet", "nisl", "suscipit", "adipiscing"
+];
+
+function randomWord() {
+  return WORDS[Math.floor(Math.random() * WORDS.length)];
+}
+
+function generateSentence(minWords = 8, maxWords = 16) {
+  const count = Math.floor(Math.random() * (maxWords - minWords + 1)) + minWords;
+  const sentenceWords = [];
+  for (let i = 0; i < count; i++) {
+    sentenceWords.push(randomWord());
+  }
+  const sentence = sentenceWords.join(' ');
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
+}
+
+function generateParagraph(minSentences = 4, maxSentences = 8) {
+  const count = Math.floor(Math.random() * (maxSentences - minSentences + 1)) + minSentences;
+  const sentences = [];
+  for (let i = 0; i < count; i++) {
+    sentences.push(generateSentence());
+  }
+  return sentences.join(' ');
+}
+
+function generateLorem() {
+  const count = parseInt(document.getElementById('count').value, 10) || 5;
+  const type = document.getElementById('type').value;
+  const startWithLorem = document.getElementById('startWithLorem').checked;
+  const asHtml = document.getElementById('asHtml').checked;
+  
+  let result = [];
+
+  if (type === 'words') {
+    let words = [];
+    for (let i = 0; i < count; i++) {
+      words.push(randomWord());
+    }
+    if (startWithLorem && words.length >= 2) {
+      words[0] = 'lorem';
+      words[1] = 'ipsum';
+    }
+    result.push(words.join(' '));
+  } else if (type === 'sentences') {
+    for (let i = 0; i < count; i++) {
+      let s = generateSentence();
+      if (i === 0 && startWithLorem) {
+        s = 'Lorem ipsum dolor sit amet, ' + s.charAt(0).toLowerCase() + s.slice(1);
+      }
+      result.push(asHtml ? `<p>${s}</p>` : s);
+    }
+  } else if (type === 'lists') {
+    for (let i = 0; i < count; i++) {
+      let s = generateSentence(4, 10);
+      result.push(asHtml ? `  <li>${s}</li>` : `- ${s}`);
+    }
+    if (asHtml) {
+      result.unshift('<ul>');
+      result.push('</ul>');
+    }
+  } else {
+    for (let i = 0; i < count; i++) {
+      let p = generateParagraph();
+      if (i === 0 && startWithLorem) {
+        p = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' + p;
+      }
+      result.push(asHtml ? `<p>${p}</p>` : p);
+    }
+  }
+
+  const outputText = type === 'lists' && asHtml ? result.join('\n') : result.join(asHtml ? '\n\n' : '\n\n');
+  const outputEl = document.getElementById('output');
+  outputEl.value = outputText;
+
+  updateStats(outputText);
+}
+
+function updateStats(text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  document.getElementById('wordCount').textContent = `Words: ${words}`;
+  document.getElementById('charCount').textContent = `Characters: ${chars}`;
+}
+
+function copyOutput() {
+  const outputEl = document.getElementById('output');
+  if (!outputEl.value) return;
+  navigator.clipboard.writeText(outputEl.value).then(() => {
+    const status = document.getElementById('statusMsg');
+    status.textContent = 'Copied to clipboard!';
+    setTimeout(() => { status.textContent = ''; }, 2500);
+  });
+}
+
+function clearOutput() {
+  document.getElementById('output').value = '';
+  updateStats('');
+}
+
+// Generate default on page load
+window.addEventListener('DOMContentLoaded', generateLorem);
+</script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
