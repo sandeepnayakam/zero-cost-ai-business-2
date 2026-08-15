@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL Formatter & Beautifier - Free Online Developer Tool</title>
+  <meta name="description" content="Fast, client-side SQL formatter and minifier. Beautify complex queries, format keywords, customize indentation, and support standard SQL dialects securely in your browser.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+    @media (max-width: 768px) { .tool-grid { grid-template-columns: 1fr; } }
+    .panel { display: flex; flex-direction: column; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .panel-header label { font-weight: bold; color: #2d3748; }
+    textarea { width: 100%; height: 360px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.9rem; padding: 0.75rem; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; resize: vertical; background: #f7fafc; color: #1a202c; }
+    textarea:focus { outline: none; border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2); background: #fff; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1rem; background: #edf2f7; padding: 0.75rem 1rem; border-radius: 6px; }
+    .toolbar select, .toolbar button { padding: 0.5rem 0.85rem; border-radius: 4px; border: 1px solid #cbd5e0; font-size: 0.9rem; cursor: pointer; background: #fff; font-weight: 500; }
+    .toolbar button.btn-primary { background: #3182ce; color: #fff; border-color: #2b6cb0; }
+    .toolbar button.btn-primary:hover { background: #2b6cb0; }
+    .stats-bar { display: flex; gap: 1.5rem; margin-top: 0.5rem; font-size: 0.85rem; color: #718096; }
+    .tip-box { margin-top: 2.5rem; padding: 1.5rem; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 8px; text-align: center; }
+    .tip-box h2 { margin-top: 0; color: #2b6cb0; font-size: 1.25rem; }
+    .tip-box p { color: #4a5568; margin-bottom: 1rem; font-size: 0.95rem; }
+    .crypto-wallets { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; font-size: 0.85rem; }
+    .crypto-item { background: #fff; border: 1px solid #cbd5e0; border-radius: 4px; padding: 0.4rem 0.75rem; font-family: monospace; user-select: all; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>SQL Formatter & Beautifier</h1>
+    <p class="subtitle">Instantly beautify, format, or minify SQL queries with customizable indentation and keyword casing. Runs 100% in your browser.</p>
+
+    <div class="toolbar">
+      <button id="btn-format" class="btn-primary">✨ Format SQL</button>
+      <button id="btn-minify">📦 Minify</button>
+      <label for="select-indent">Indent:</label>
+      <select id="select-indent">
+        <option value="2">2 Spaces</option>
+        <option value="4" selected>4 Spaces</option>
+        <option value="tab">Tab</option>
+      </select>
+      <label for="select-casing">Keywords:</label>
+      <select id="select-casing">
+        <option value="upper" selected>UPPERCASE</option>
+        <option value="lower">lowercase</option>
+        <option value="preserve">Preserve</option>
+      </select>
+      <button id="btn-clear">Clear</button>
+      <button id="btn-sample">Sample Query</button>
+      <button id="btn-copy">📋 Copy Output</button>
+    </div>
+
+    <div class="tool-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <label for="sql-input">Input SQL</label>
+          <span id="input-stats" class="stats-bar">0 chars</span>
+        </div>
+        <textarea id="sql-input" placeholder="Paste raw or unformatted SQL query here..."></textarea>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <label for="sql-output">Formatted Output</label>
+          <span id="output-stats" class="stats-bar">0 chars</span>
+        </div>
+        <textarea id="sql-output" readonly placeholder="Formatted SQL will appear here..."></textarea>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <h2>Support This Free Tool</h2>
+      <p>FreeTools is run independently with zero tracking or ads. If this utility saved you time, consider leaving a small crypto tip!</p>
+      <div class="crypto-wallets">
+        <div class="crypto-item"><strong>BTC:</strong> bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z</div>
+        <div class="crypto-item"><strong>ETH:</strong> 0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997</div>
+        <div class="crypto-item"><strong>SOL:</strong> 2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built by an autonomous AI agent. Free for everyone.</p>
+    </div>
+  </footer>
+
+  <script>
+    const SQL_KEYWORDS = [
+      'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'INSERT', 'INTO', 'VALUES', 'UPDATE',
+      'SET', 'DELETE', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN',
+      'FULL JOIN', 'CROSS JOIN', 'ON', 'GROUP BY', 'ORDER BY', 'HAVING', 'LIMIT',
+      'OFFSET', 'UNION', 'UNION ALL', 'CREATE TABLE', 'ALTER TABLE', 'DROP TABLE',
+      'AS', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'DISTINCT', 'IN', 'NOT IN',
+      'BETWEEN', 'LIKE', 'ILIKE', 'IS NULL', 'IS NOT NULL', 'EXISTS', 'COUNT', 'SUM',
+      'AVG', 'MIN', 'MAX', 'PRIMARY KEY', 'FOREIGN KEY', 'REFERENCES', 'DEFAULT',
+      'AUTO_INCREMENT', 'CASCADE', 'INDEX', 'UNIQUE', 'WITH', 'WINDOW', 'OVER'
+    ];
+
+    function formatSql(query, indentStr, casing) {
+      if (!query.trim()) return '';
+      
+      let tokens = query
+        .replace(/\s+/g, ' ')
+        .replace(/\s*,\s*/g, ', ')
+        .replace(/\(\s*/g, ' ( ')
+        .replace(/\s*\)/g, ' ) ')
+        .trim()
+        .split(' ');
+
+      const majorKeywords = new Set([
+        'SELECT', 'FROM', 'WHERE', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN',
+        'OUTER JOIN', 'FULL JOIN', 'JOIN', 'CROSS JOIN', 'GROUP BY',
+        'ORDER BY', 'HAVING', 'LIMIT', 'OFFSET', 'UNION', 'UNION ALL',
+        'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM', 'WITH'
+      ]);
+
+      let formatted = '';
+      let currentIndent = 0;
+      let i = 0;
+
+      while (i < tokens.length) {
+        let word = tokens[i];
+        if (!word) { i++; continue; }
+        
+        let twoWords = (i + 1 < tokens.length) ? (word + ' ' + tokens[i + 1]).toUpperCase() : '';
+        let upper = word.toUpperCase();
+
+        let isTwoWordKw = majorKeywords.has(twoWords);
+        let isSingleKw = majorKeywords.has(upper);
+
+        if (isTwoWordKw) {
+          formatted += '\n' + indentStr.repeat(currentIndent) + (casing === 'upper' ? twoWords : (casing === 'lower' ? twoWords.toLowerCase() : word + ' ' + tokens[i+1])) + ' ';
+          i += 2;
+          continue;
+        } else if (isSingleKw) {
+          formatted += '\n' + indentStr.repeat(currentIndent) + (casing === 'upper' ? upper : (casing === 'lower' ? upper.toLowerCase() : word)) + ' ';
+          i++;
+          continue;
+        } else if (upper === 'AND' || upper === 'OR') {
+          formatted += '\n' + indentStr.repeat(currentIndent + 1) + (casing === 'upper' ? upper : (casing === 'lower' ? upper.toLowerCase() : word)) + ' ';
+          i++;
+          continue;
+        } else if (word === '(') {
+          currentIndent++;
+          formatted += '(';
+        } else if (word === ')') {
+          currentIndent = Math.max(0, currentIndent - 1);
+          formatted += ') ';
+        } else if (word.endsWith(',')) {
+          let cleanWord = word.slice(0, -1);
+          let kwCheck = SQL_KEYWORDS.includes(cleanWord.toUpperCase());
+          let display = kwCheck ? (casing === 'upper' ? cleanWord.toUpperCase() : (casing === 'lower' ? cleanWord.toLowerCase() : cleanWord)) : cleanWord;
+          formatted += display + ',\n' + indentStr.repeat(currentIndent + 1);
+        } else {
+          let isKw = SQL_KEYWORDS.includes(upper);
+          let display = isKw ? (casing === 'upper' ? upper : (casing === 'lower' ? upper.toLowerCase() : word)) : word;
+          formatted += display + ' ';
+        }
+        i++;
+      }
+
+      return formatted.trim().replace(/\n{3,}/g, '\n\n');
+    }
+
+    function minifySql(query) {
+      return query
+        .replace(/--.*$/gm, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/\s*([,()=<>+*-])\s*/g, '$1')
+        .trim();
+    }
+
+    const inputEl = document.getElementById('sql-input');
+    const outputEl = document.getElementById('sql-output');
+    const indentEl = document.getElementById('select-indent');
+    const casingEl = document.getElementById('select-casing');
+    const inStats = document.getElementById('input-stats');
+    const outStats = document.getElementById('output-stats');
+
+    function getIndentStr() {
+      const val = indentEl.value;
+      return val === 'tab' ? '\t' : ' '.repeat(parseInt(val, 10));
+    }
+
+    function update() {
+      const raw = inputEl.value;
+      inStats.textContent = raw.length + ' chars';
+      if (!raw.trim()) {
+        outputEl.value = '';
+        outStats.textContent = '0 chars';
+        return;
+      }
+      const formatted = formatSql(raw, getIndentStr(), casingEl.value);
+      outputEl.value = formatted;
+      outStats.textContent = formatted.length + ' chars';
+    }
+
+    document.getElementById('btn-format').addEventListener('click', update);
+    indentEl.addEventListener('change', update);
+    casingEl.addEventListener('change', update);
+    inputEl.addEventListener('input', () => inStats.textContent = inputEl.value.length + ' chars');
+
+    document.getElementById('btn-minify').addEventListener('click', () => {
+      const raw = inputEl.value;
+      if (!raw.trim()) return;
+      const min = minifySql(raw);
+      outputEl.value = min;
+      outStats.textContent = min.length + ' chars';
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      inputEl.value = '';
+      outputEl.value = '';
+      inStats.textContent = '0 chars';
+      outStats.textContent = '0 chars';
+      inputEl.focus();
+    });
+
+    document.getElementById('btn-sample').addEventListener('click', () => {
+      inputEl.value = 'SELECT u.id, u.name, u.email, COUNT(o.id) AS total_orders, SUM(o.total_amount) AS revenue FROM users u LEFT JOIN orders o ON u.id = o.user_id WHERE u.status = \'active\' AND o.created_at >= \'2026-01-01\' GROUP BY u.id, u.name, u.email HAVING COUNT(o.id) > 5 ORDER BY revenue DESC LIMIT 50;';
+      update();
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      if (!outputEl.value) return;
+      navigator.clipboard.writeText(outputEl.value).then(() => {
+        const btn = document.getElementById('btn-copy');
+        const original = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => btn.textContent = original, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
