@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cURL to Code Converter (Fetch, Python, Axios, Go) - Free Online Tool</title>
+  <meta name="description" content="Instantly convert cURL command line requests into JavaScript Fetch, Python Requests, Node Axios, and Go code snippets. 100% client-side, private, and secure.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .converter-container { display: flex; flex-direction: column; gap: 1.5rem; margin: 1.5rem 0; }
+    .code-box { width: 100%; min-height: 140px; font-family: monospace; font-size: 0.9rem; padding: 12px; border: 1px solid #334155; border-radius: 6px; background: #0f172a; color: #f8fafc; resize: vertical; box-sizing: border-box; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+    .btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .lang-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-top: 1rem; }
+    .lang-btn { background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .lang-btn.active { background: #38bdf8; color: #0f172a; font-weight: bold; border-color: #38bdf8; }
+    .btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; border: none; font-weight: 500; font-size: 0.9rem; }
+    .btn-primary { background: #38bdf8; color: #0f172a; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-outline { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+    .btn:hover { opacity: 0.9; }
+    .tip-box { margin-top: 3rem; padding: 1.5rem; background: #1e293b; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+    .wallets { display: flex; flex-direction: column; gap: 0.5rem; max-width: 600px; margin: 1rem auto; text-align: left; }
+    .wallet-item { background: #0f172a; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; word-break: break-all; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .copy-sm { background: #334155; color: #f8fafc; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; }
+    .notice { color: #94a3b8; font-size: 0.85rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">All Tools</a>
+        <a href="/guides/crypto-tips.html">Support Us</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>cURL to Code Converter</h1>
+    <p class="subtitle">Quickly transform raw cURL terminal commands into clean JavaScript Fetch, Python Requests, Node.js Axios, or Go HTTP code.</p>
+
+    <div class="converter-container">
+      <div>
+        <div class="toolbar">
+          <label for="curl-input"><strong>cURL Command:</strong></label>
+          <div class="btn-group">
+            <button class="btn btn-outline" onclick="loadSample()">Load Sample</button>
+            <button class="btn btn-secondary" onclick="clearInput()">Clear</button>
+          </div>
+        </div>
+        <textarea id="curl-input" class="code-box" placeholder="curl -X POST https://api.example.com/v1/data -H 'Content-Type: application/json' -H 'Authorization: Bearer token123' -d '{\\&quot;query\\&quot;:\\&quot;test\\&quot;}'"></textarea>
+      </div>
+
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="selectLang('fetch')">JavaScript (Fetch)</button>
+        <button class="lang-btn" onclick="selectLang('python')">Python (Requests)</button>
+        <button class="lang-btn" onclick="selectLang('axios')">Node.js (Axios)</button>
+        <button class="lang-btn" onclick="selectLang('go')">Go (net/http)</button>
+      </div>
+
+      <div>
+        <div class="toolbar">
+          <label for="code-output"><strong id="output-title">JavaScript (Fetch) Code:</strong></label>
+          <button class="btn btn-primary" onclick="copyOutput()">Copy Code</button>
+        </div>
+        <textarea id="code-output" class="code-box" readonly placeholder="Generated code snippet will appear here..."></textarea>
+        <p class="notice" id="status-msg">All conversions execute 100% in your browser. No headers or payload data are transmitted to any server.</p>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <h2>Support Free Developer Utilities</h2>
+      <p>This zero-cost tool suite is maintained independently. If it saved you debugging time, consider sending a micro-tip!</p>
+      <div class="wallets">
+        <div class="wallet-item"><span><strong>BTC:</strong> bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z</span><button class="copy-sm" onclick="navigator.clipboard.writeText('bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z')">Copy</button></div>
+        <div class="wallet-item"><span><strong>ETH:</strong> 0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997</span><button class="copy-sm" onclick="navigator.clipboard.writeText('0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997')">Copy</button></div>
+        <div class="wallet-item"><span><strong>SOL:</strong> 2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM</span><button class="copy-sm" onclick="navigator.clipboard.writeText('2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM')">Copy</button></div>
+        <div class="wallet-item"><span><strong>USDT (TRC20):</strong> TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv</span><button class="copy-sm" onclick="navigator.clipboard.writeText('TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv')">Copy</button></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built with autonomous intelligence. 100% Free, Secure & Client-Side Tools.</p>
+    </div>
+  </footer>
+
+  <script>
+    let currentLang = 'fetch';
+
+    function parseCurl(curlText) {
+      let raw = curlText.trim().replace(/\\\\\\r?\
+/g, ' ');
+      if (!raw.startsWith('curl')) return null;
+
+      let method = 'GET';
+      let url = '';
+      let headers = {};
+      let data = null;
+
+      // Tokenize respecting quotes
+      let tokens = [];
+      let regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
+      let match;
+      while ((match = regex.exec(raw)) !== null) {
+        tokens.push(match[1] !== undefined ? match[1] : (match[2] !== undefined ? match[2] : match[0]));
+      }
+
+      for (let i = 1; i < tokens.length; i++) {
+        let token = tokens[i];
+        if (token === '-X' || token === '--request') {
+          method = (tokens[++i] || 'GET').toUpperCase();
+        } else if (token === '-H' || token === '--header') {
+          let h = tokens[++i] || '';
+          let splitIdx = h.indexOf(':');
+          if (splitIdx > -1) {
+            let key = h.substring(0, splitIdx).trim();
+            let val = h.substring(splitIdx + 1).trim();
+            headers[key] = val;
+          }
+        } else if (token === '-d' || token === '--data' || token === '--data-raw' || token === '--data-binary') {
+          data = tokens[++i] || '';
+          if (method === 'GET') method = 'POST';
+        } else if (token === '-u' || token === '--user') {
+          let auth = tokens[++i] || '';
+          headers['Authorization'] = 'Basic ' + btoa(auth);
+        } else if (!token.startsWith('-') && !url) {
+          url = token;
+        } else if (token.startsWith('http://') || token.startsWith('https://')) {
+          url = token;
+        }
+      }
+
+      return { method, url, headers, data };
+    }
+
+    function generateFetch(parsed) {
+      if (!parsed || !parsed.url) return '// Enter a valid cURL command above.';
+      let opts = {
+        method: parsed.method
+      };
+      if (Object.keys(parsed.headers).length > 0) opts.headers = parsed.headers;
+      if (parsed.data) opts.body = parsed.data;
+
+      let code = `fetch("${parsed.url}", {
+  method: "${parsed.method}",
+`;
+      if (Object.keys(parsed.headers).length > 0) {
+        code += `  headers: ${JSON.stringify(parsed.headers, null, 4).replace(/\
+/g, '\
+  ')},
+`;
+      }
+      if (parsed.data) {
+        code += `  body: JSON.stringify(${parsed.data.startsWith('{') || parsed.data.startsWith('[') ? parsed.data : JSON.stringify(parsed.data)})
+`;
+      }
+      code += `})
+  .then(res => res.json())
+  .then(data => console.log(data))
+  .catch(err => console.error(err));`;
+      return code;
+    }
+
+    function generatePython(parsed) {
+      if (!parsed || !parsed.url) return '# Enter a valid cURL command above.';
+      let code = `import requests\
+\
+url = "${parsed.url}"\
+`;
+      if (Object.keys(parsed.headers).length > 0) {
+        code += `headers = ${JSON.stringify(parsed.headers, null, 4)}\
+`;
+      } else {
+        code += `headers = {}\
+`;
+      }
+      if (parsed.data) {
+        code += `data = ${parsed.data.startsWith('{') || parsed.data.startsWith('[') ? parsed.data : JSON.stringify(parsed.data)}\
+\
+`;
+        code += `response = requests.${parsed.method.toLowerCase()}(url, headers=headers, json=data)\
+`;
+      } else {
+        code += `\
+response = requests.${parsed.method.toLowerCase()}(url, headers=headers)\
+`;
+      }
+      code += `print(response.status_code)\
+print(response.json())`;
+      return code;
+    }
+
+    function generateAxios(parsed) {
+      if (!parsed || !parsed.url) return '// Enter a valid cURL command above.';
+      let code = `const axios = require('axios');\
+\
+`;
+      code += `axios({\
+  method: '${parsed.method.toLowerCase()}',\
+  url: '${parsed.url}',\
+`;
+      if (Object.keys(parsed.headers).length > 0) {
+        code += `  headers: ${JSON.stringify(parsed.headers, null, 4).replace(/\
+/g, '\
+  ')},\
+`;
+      }
+      if (parsed.data) {
+        code += `  data: ${parsed.data.startsWith('{') || parsed.data.startsWith('[') ? parsed.data : JSON.stringify(parsed.data)}\
+`;
+      }
+      code += `})\
+.then(response => {\
+  console.log(response.data);\
+})\
+.catch(error => {\
+  console.error(error);\
+});`;
+      return code;
+    }
+
+    function generateGo(parsed) {
+      if (!parsed || !parsed.url) return '// Enter a valid cURL command above.';
+      let code = `package main\
+\
+import (\
+\	"fmt"\
+\	"io"\
+\	"net/http"\
+`;
+      if (parsed.data) code += `\	"strings"\
+`;
+      code += `)\
+\
+func main() {\
+\	url := "${parsed.url}"\
+`;
+      if (parsed.data) {
+        code += `\	body := strings.NewReader(\`${parsed.data}\`)\
+`;
+        code += `\	req, err := http.NewRequest("${parsed.method}", url, body)\
+`;
+      } else {
+        code += `\	req, err := http.NewRequest("${parsed.method}", url, nil)\
+`;
+      }
+      code += `\	if err != nil {\
+\	\	panic(err)\
+\	}\
+\
+`;
+      for (let k in parsed.headers) {
+        code += `\	req.Header.Set("${k}", "${parsed.headers[k]}")\
+`;
+      }
+      code += `\
+\	res, err := http.DefaultClient.Do(req)\
+\	if err != nil {\
+\	\	panic(err)\
+\	}\
+\	defer res.Body.Close()\
+\
+\	out, _ := io.ReadAll(res.Body)\
+\	fmt.Println(string(out))\
+}`; 
+      return code;
+    }
+
+    function updateConversion() {
+      let input = document.getElementById('curl-input').value;
+      if (!input.trim()) {
+        document.getElementById('code-output').value = '';
+        return;
+      }
+      let parsed = parseCurl(input);
+      let output = '';
+      if (currentLang === 'fetch') output = generateFetch(parsed);
+      else if (currentLang === 'python') output = generatePython(parsed);
+      else if (currentLang === 'axios') output = generateAxios(parsed);
+      else if (currentLang === 'go') output = generateGo(parsed);
+      document.getElementById('code-output').value = output;
+    }
+
+    function selectLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      let titles = {
+        fetch: 'JavaScript (Fetch) Code:',
+        python: 'Python (Requests) Code:',
+        axios: 'Node.js (Axios) Code:',
+        go: 'Go (net/http) Code:'
+      };
+      document.getElementById('output-title').textContent = titles[lang];
+      updateConversion();
+    }
+
+    function loadSample() {
+      document.getElementById('curl-input').value = `curl -X POST https://api.github.com/repos/owner/repo/issues \\\\\
+  -H "Accept: application/vnd.github+json" \\\\\
+  -H "Authorization: Bearer ghp_sampletoken123456" \\\\\
+  -d '{"title":"Found a bug","body":"Bug description details","labels":["bug"]}'`;
+      updateConversion();
+    }
+
+    function clearInput() {
+      document.getElementById('curl-input').value = '';
+      document.getElementById('code-output').value = '';
+    }
+
+    function copyOutput() {
+      let out = document.getElementById('code-output').value;
+      if (!out) return;
+      navigator.clipboard.writeText(out).then(() => {
+        let msg = document.getElementById('status-msg');
+        let original = msg.textContent;
+        msg.textContent = '✓ Code copied to clipboard successfully!';
+        msg.style.color = '#38bdf8';
+        setTimeout(() => {
+          msg.textContent = original;
+          msg.style.color = '#94a3b8';
+        }, 3000);
+      });
+    }
+
+    document.getElementById('curl-input').addEventListener('input', updateConversion);
+  </script>
+</body>
+</html>
