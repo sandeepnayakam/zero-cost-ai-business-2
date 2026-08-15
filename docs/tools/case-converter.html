@@ -3,24 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Case Converter - Free Online Text Case Conversion Tool</title>
-  <meta name="description" content="Easily convert text between camelCase, snake_case, kebab-case, PascalCase, UPPERCASE, lowercase, Title Case, and more with instant preview and copy.">
+  <title>Case Converter - Convert Text to camelCase, snake_case, PascalCase & More</title>
+  <meta name="description" content="Free online text case converter. Easily convert text to uppercase, lowercase, title case, camelCase, snake_case, kebab-case, PascalCase, and CONSTANT_CASE instantly.">
   <link rel="stylesheet" href="/assets/css/style.css">
   <style>
-    .converter-container { display: flex; flex-direction: column; gap: 1.5rem; margin: 1.5rem 0; }
-    .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
-    textarea { width: 100%; min-height: 120px; padding: 0.8rem; font-family: monospace; font-size: 0.95rem; border: 1px solid #ccc; border-radius: 4px; resize: vertical; box-sizing: border-box; }
-    .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.6rem; }
-    .btn-case { padding: 0.6rem 0.8rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 4px; border: 1px solid #0056b3; background: #007bff; color: #fff; text-align: center; transition: background 0.2s; }
-    .btn-case:hover { background: #0056b3; }
-    .btn-action { background: #28a745; border-color: #1e7e34; }
-    .btn-action:hover { background: #1e7e34; }
-    .btn-clear { background: #6c757d; border-color: #545b62; }
-    .btn-clear:hover { background: #545b62; }
-    .controls { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-    .copy-notification { color: #28a745; font-size: 0.85rem; font-weight: bold; margin-left: 0.5rem; display: none; }
-    .info-section { margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef; }
-    .tip-box { margin-top: 2rem; padding: 1.2rem; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px; text-align: center; }
+    .converter-container { max-width: 900px; margin: 0 auto; padding: 20px 0; }
+    .input-section { margin-bottom: 20px; }
+    .textarea-box { width: 100%; min-height: 140px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 15px; box-sizing: border-box; resize: vertical; }
+    .textarea-box:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+    .button-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 25px; }
+    .btn-case { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.15s ease; }
+    .btn-case:hover { background: #3b82f6; color: #ffffff; border-color: #3b82f6; }
+    .results-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 20px; }
+    .result-row { display: flex; flex-direction: column; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; position: relative; }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .result-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748b; }
+    .copy-btn { background: #e2e8f0; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: 600; color: #334155; }
+    .copy-btn:hover { background: #cbd5e1; }
+    .result-text { font-family: monospace; font-size: 14px; word-break: break-all; color: #0f172a; white-space: pre-wrap; background: #f8fafc; padding: 8px; border-radius: 4px; }
+    .stats-bar { display: flex; gap: 15px; font-size: 13px; color: #64748b; margin-top: 6px; }
+    .tip-box { margin-top: 40px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; }
   </style>
 </head>
 <body>
@@ -35,128 +37,136 @@
 </header>
 
 <main class="container tool-page">
-  <h1>Case Converter & String Transformer</h1>
-  <p class="subtitle">Convert your text into uppercase, lowercase, camelCase, snake_case, kebab-case, PascalCase, Title Case, and more instantly.</p>
-
   <div class="converter-container">
-    <div class="input-group">
-      <label for="inputText"><strong>Input Text:</strong></label>
-      <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+    <h1>Case Converter Tool</h1>
+    <p class="subtitle">Quickly transform text between camelCase, PascalCase, snake_case, kebab-case, UPPERCASE, lowercase, and more in real-time.</p>
+
+    <div class="input-section">
+      <textarea id="inputText" class="textarea-box" placeholder="Type or paste your text here to convert...">Hello world! Case conversion made easy with autonomous tools.</textarea>
+      <div class="stats-bar">
+        <span id="charCount">Characters: 0</span>
+        <span id="wordCount">Words: 0</span>
+        <span id="lineCount">Lines: 0</span>
+      </div>
     </div>
 
-    <div class="btn-grid">
-      <button class="btn-case" onclick="convertCase('upper')">UPPERCASE</button>
-      <button class="btn-case" onclick="convertCase('lower')">lowercase</button>
-      <button class="btn-case" onclick="convertCase('title')">Title Case</button>
-      <button class="btn-case" onclick="convertCase('sentence')">Sentence case</button>
-      <button class="btn-case" onclick="convertCase('camel')">camelCase</button>
-      <button class="btn-case" onclick="convertCase('pascal')">PascalCase</button>
-      <button class="btn-case" onclick="convertCase('snake')">snake_case</button>
-      <button class="btn-case" onclick="convertCase('kebab')">kebab-case</button>
-      <button class="btn-case" onclick="convertCase('constant')">CONSTANT_CASE</button>
-      <button class="btn-case" onclick="convertCase('dot')">dot.case</button>
+    <div class="button-grid">
+      <button class="btn-case" onclick="applyTransformation('lower')">lower case</button>
+      <button class="btn-case" onclick="applyTransformation('upper')">UPPER CASE</button>
+      <button class="btn-case" onclick="applyTransformation('title')">Title Case</button>
+      <button class="btn-case" onclick="applyTransformation('sentence')">Sentence case</button>
+      <button class="btn-case" onclick="applyTransformation('camel')">camelCase</button>
+      <button class="btn-case" onclick="applyTransformation('pascal')">PascalCase</button>
+      <button class="btn-case" onclick="applyTransformation('snake')">snake_case</button>
+      <button class="btn-case" onclick="applyTransformation('kebab')">kebab-case</button>
+      <button class="btn-case" onclick="applyTransformation('constant')">CONSTANT_CASE</button>
+      <button class="btn-case" onclick="applyTransformation('dot')">dot.case</button>
+      <button class="btn-case" onclick="clearInput()">Clear Text</button>
     </div>
 
-    <div class="input-group">
-      <label for="outputText"><strong>Output Result:</strong></label>
-      <textarea id="outputText" readonly placeholder="Converted text will appear here..."></textarea>
+    <h2>All Variations Live Preview</h2>
+    <div class="results-grid" id="resultsGrid">
+      <!-- Generated dynamically -->
     </div>
 
-    <div class="controls">
-      <button class="btn-case btn-action" onclick="copyOutput()">Copy Output</button>
-      <button class="btn-case btn-clear" onclick="clearAll()">Clear</button>
-      <span id="copyMsg" class="copy-notification">Copied to clipboard!</span>
+    <div class="tip-box">
+      <h3>Support Independent Open Source Web Tools</h3>
+      <p>This tool is built and maintained client-side with 100% data privacy. If it helped your workflow, consider sending a micro-tip to support serverless autonomous tools.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto (BTC, ETH, SOL, TRX, RON)</a>
     </div>
-  </div>
-
-  <div class="info-section">
-    <h3>About Case Conversion</h3>
-    <p>Developers and writers frequently need to reformat identifiers and text across variable naming conventions and formatting standards. This client-side tool runs entirely in your browser with zero latency and 100% data privacy.</p>
-  </div>
-
-  <div class="tip-box">
-    <h2>Found this tool helpful?</h2>
-    <p>Support our zero-cost autonomous open source tools with a micro-tip.</p>
-    <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a>
   </div>
 </main>
 
 <footer>
   <div class="container">
-    <p>Built by an autonomous AI agent operating zero-cost utilities.</p>
+    <p>Built by an autonomous AI agent. Free &amp; Private forever.</p>
   </div>
 </footer>
 
 <script>
-  function getWords(text) {
-    return text.replace(/([a-z])([A-Z])/g, '$1 $2')
-               .replace(/[^a-zA-Z0-9]+/g, ' ')
-               .trim()
-               .split(/\s+/)
-               .filter(Boolean);
+  const input = document.getElementById('inputText');
+  const charCount = document.getElementById('charCount');
+  const wordCount = document.getElementById('wordCount');
+  const lineCount = document.getElementById('lineCount');
+  const resultsGrid = document.getElementById('resultsGrid');
+
+  function extractWords(str) {
+    return str
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/[^a-zA-Z0-9]+/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
   }
 
-  function convertCase(type) {
-    const text = document.getElementById('inputText').value;
-    if (!text) {
-      document.getElementById('outputText').value = '';
-      return;
-    }
+  const transforms = [
+    { id: 'lower', label: 'lowercase', fn: s => s.toLowerCase() },
+    { id: 'upper', label: 'UPPERCASE', fn: s => s.toUpperCase() },
+    { id: 'sentence', label: 'Sentence case', fn: s => s.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase()) },
+    { id: 'title', label: 'Title Case', fn: s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) },
+    { id: 'camel', label: 'camelCase', fn: s => {
+      const words = extractWords(s);
+      if (!words.length) return '';
+      return words[0].toLowerCase() + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+    }},
+    { id: 'pascal', label: 'PascalCase', fn: s => extractWords(s).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('') },
+    { id: 'snake', label: 'snake_case', fn: s => extractWords(s).map(w => w.toLowerCase()).join('_') },
+    { id: 'kebab', label: 'kebab-case', fn: s => extractWords(s).map(w => w.toLowerCase()).join('-') },
+    { id: 'constant', label: 'CONSTANT_CASE', fn: s => extractWords(s).map(w => w.toUpperCase()).join('_') },
+    { id: 'dot', label: 'dot.case', fn: s => extractWords(s).map(w => w.toLowerCase()).join('.') }
+  ];
 
-    let res = '';
-    const words = getWords(text);
+  function updateAll() {
+    const text = input.value;
+    charCount.innerText = `Characters: ${text.length}`;
+    wordCount.innerText = `Words: ${text.trim() ? text.trim().split(/\s+/).length : 0}`;
+    lineCount.innerText = `Lines: ${text ? text.split('\n').length : 0}`;
 
-    switch(type) {
-      case 'upper':
-        res = text.toUpperCase();
-        break;
-      case 'lower':
-        res = text.toLowerCase();
-        break;
-      case 'title':
-        res = text.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-        break;
-      case 'sentence':
-        res = text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, (c) => c.toUpperCase());
-        break;
-      case 'camel':
-        res = words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
-        break;
-      case 'pascal':
-        res = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
-        break;
-      case 'snake':
-        res = words.map(w => w.toLowerCase()).join('_');
-        break;
-      case 'kebab':
-        res = words.map(w => w.toLowerCase()).join('-');
-        break;
-      case 'constant':
-        res = words.map(w => w.toUpperCase()).join('_');
-        break;
-      case 'dot':
-        res = words.map(w => w.toLowerCase()).join('.');
-        break;
-      default:
-        res = text;
-    }
-    document.getElementById('outputText').value = res;
-  }
-
-  function copyOutput() {
-    const out = document.getElementById('outputText');
-    if (!out.value) return;
-    navigator.clipboard.writeText(out.value).then(() => {
-      const msg = document.getElementById('copyMsg');
-      msg.style.display = 'inline';
-      setTimeout(() => { msg.style.display = 'none'; }, 2500);
+    resultsGrid.innerHTML = '';
+    transforms.forEach(t => {
+      const converted = t.fn(text);
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML = `
+        <div class="result-header">
+          <span class="result-label">${t.label}</span>
+          <button class="copy-btn" onclick="copyText('${t.id}')">Copy</button>
+        </div>
+        <div class="result-text" id="res_${t.id}">${escapeHtml(converted || '(empty)')}</div>
+      `;
+      resultsGrid.appendChild(row);
     });
   }
 
-  function clearAll() {
-    document.getElementById('inputText').value = '';
-    document.getElementById('outputText').value = '';
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+
+  function applyTransformation(id) {
+    const t = transforms.find(x => x.id === id);
+    if (t) {
+      input.value = t.fn(input.value);
+      updateAll();
+    }
+  }
+
+  function clearInput() {
+    input.value = '';
+    updateAll();
+  }
+
+  function copyText(id) {
+    const el = document.getElementById('res_' + id);
+    if (el) {
+      const val = el.innerText === '(empty)' ? '' : el.innerText;
+      navigator.clipboard.writeText(val).then(() => {
+        alert('Copied ' + id + ' case to clipboard!');
+      });
+    }
+  }
+
+  input.addEventListener('input', updateAll);
+  updateAll();
 </script>
 </body>
 </html>
