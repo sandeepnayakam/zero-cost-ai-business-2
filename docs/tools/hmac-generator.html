@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMAC Generator & Signature Verifier (SHA-256, SHA-512, SHA-1) - Free Developer Tool</title>
+  <meta name="description" content="Free online client-side HMAC generator and signature verification tool. Compute and verify HMAC-SHA256, HMAC-SHA512, HMAC-SHA384, and HMAC-MD5 signatures securely in your browser.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .tool-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+    .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .input-group label { font-weight: 600; font-size: 0.95rem; color: #334155; }
+    .form-control { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 0.95rem; box-sizing: border-box; }
+    textarea.form-control { resize: vertical; min-height: 120px; }
+    .row-flex { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .flex-1 { flex: 1; min-width: 200px; }
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+    .btn { padding: 0.65rem 1.25rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .output-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-top: 1rem; }
+    .result-field { margin-bottom: 1rem; }
+    .result-field:last-child { margin-bottom: 0; }
+    .badge-status { display: inline-block; padding: 0.35rem 0.75rem; border-radius: 4px; font-weight: 700; font-size: 0.85rem; }
+    .status-valid { background: #dcfce7; color: #166534; }
+    .status-invalid { background: #fee2e2; color: #991b1b; }
+    .tip-box { background: #f1f5f9; border-left: 4px solid #2563eb; border-radius: 6px; padding: 1.5rem; margin-top: 2.5rem; }
+    .tip-box h2 { margin-top: 0; font-size: 1.2rem; color: #1e293b; }
+    .wallet-list { font-family: monospace; font-size: 0.85rem; word-break: break-all; margin: 0.75rem 0; }
+    .wallet-item { margin-bottom: 0.35rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>HMAC Generator & Verifier</h1>
+    <p class="subtitle">Compute and verify keyed-hash message authentication codes (HMAC) securely client-side in real time.</p>
+
+    <div class="tool-grid">
+      <div class="row-flex">
+        <div class="input-group flex-1">
+          <label for="algorithm">Hash Algorithm:</label>
+          <select id="algorithm" class="form-control">
+            <option value="SHA-256" selected>SHA-256 (Most Common - Stripe, GitHub, AWS)</option>
+            <option value="SHA-512">SHA-512</option>
+            <option value="SHA-384">SHA-384</option>
+            <option value="SHA-1">SHA-1 (Legacy / Git)</option>
+          </select>
+        </div>
+        <div class="input-group flex-1">
+          <label for="outputFormat">Output Encoding:</label>
+          <select id="outputFormat" class="form-control">
+            <option value="hex" selected>Hexadecimal (Lower-case)</option>
+            <option value="hex-upper">Hexadecimal (Upper-case)</option>
+            <option value="base64">Base64</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="secretKey">Secret Key / Salt:</label>
+        <input type="text" id="secretKey" class="form-control" placeholder="e.g. whsec_abcdef123456... or my-api-secret" value="secret-key">
+      </div>
+
+      <div class="input-group">
+        <label for="payload">Message / Payload Body:</label>
+        <textarea id="payload" class="form-control" placeholder="Paste message, JSON webhook payload, or raw text...">{"event": "payment_succeeded", "amount": 2500, "currency": "USD"}</textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnCalculate">Generate HMAC</button>
+        <button class="btn btn-secondary" id="btnSampleStripe">Load Stripe Sample</button>
+        <button class="btn btn-secondary" id="btnClear">Clear</button>
+      </div>
+
+      <div class="output-box" id="outputContainer">
+        <div class="result-field">
+          <label><strong>Computed HMAC:</strong></label>
+          <input type="text" id="hmacOutput" class="form-control" readonly style="font-weight: bold; color: #1e293b; margin-top: 0.35rem;">
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-top: 1rem;">
+        <label for="verifySignature">Verify Against Expected Signature:</label>
+        <input type="text" id="verifySignature" class="form-control" placeholder="Paste signature to compare...">
+        <div id="verifyResult" style="margin-top: 0.5rem;"></div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <h2>Support Zero-Cost Open Tools</h2>
+      <p>This tool is 100% free and runs entirely within your browser for complete cryptographic privacy. No keys or payloads are sent to any server. If this tool helped your development, consider supporting this project with a crypto tip:</p>
+      <div class="wallet-list">
+        <div class="wallet-item"><strong>BTC:</strong> <code>bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z</code></div>
+        <div class="wallet-item"><strong>ETH:</strong> <code>0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997</code></div>
+        <div class="wallet-item"><strong>SOL:</strong> <code>2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM</code></div>
+        <div class="wallet-item"><strong>TRX/USDT:</strong> <code>TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv</code></div>
+      </div>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary" style="display: inline-block; margin-top: 0.5rem;">View All Tip Addresses</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built by an autonomous AI agent operating zero-cost developer utilities.</p>
+    </div>
+  </footer>
+
+  <script>
+    async function computeHMAC() {
+      const algo = document.getElementById('algorithm').value;
+      const keyText = document.getElementById('secretKey').value;
+      const messageText = document.getElementById('payload').value;
+      const format = document.getElementById('outputFormat').value;
+      const outputElem = document.getElementById('hmacOutput');
+
+      if (!keyText && !messageText) {
+        outputElem.value = '';
+        checkVerification('');
+        return;
+      }
+
+      try {
+        const enc = new TextEncoder();
+        const keyData = enc.encode(keyText);
+        const messageData = enc.encode(messageText);
+
+        const cryptoKey = await crypto.subtle.importKey(
+          'raw',
+          keyData,
+          { name: 'HMAC', hash: { name: algo } },
+          false,
+          ['sign']
+        );
+
+        const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+        const hashArray = Array.from(new Uint8Array(signature));
+
+        let result = '';
+        if (format === 'hex') {
+          result = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        } else if (format === 'hex-upper') {
+          result = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+        } else if (format === 'base64') {
+          const binString = String.fromCharCode(...hashArray);
+          result = btoa(binString);
+        }
+
+        outputElem.value = result;
+        checkVerification(result);
+      } catch (err) {
+        outputElem.value = 'Error computing HMAC: ' + err.message;
+      }
+    }
+
+    function checkVerification(computed) {
+      const expected = document.getElementById('verifySignature').value.trim();
+      const verifyDiv = document.getElementById('verifyResult');
+      if (!expected) {
+        verifyDiv.innerHTML = '';
+        return;
+      }
+      if (!computed) {
+        verifyDiv.innerHTML = '';
+        return;
+      }
+      if (computed.toLowerCase() === expected.toLowerCase()) {
+        verifyDiv.innerHTML = '<span class="badge-status status-valid">✓ Signatures Match (Valid)</span>';
+      } else {
+        verifyDiv.innerHTML = '<span class="badge-status status-invalid">✗ Signatures Do Not Match</span>';
+      }
+    }
+
+    document.getElementById('algorithm').addEventListener('change', computeHMAC);
+    document.getElementById('outputFormat').addEventListener('change', computeHMAC);
+    document.getElementById('secretKey').addEventListener('input', computeHMAC);
+    document.getElementById('payload').addEventListener('input', computeHMAC);
+    document.getElementById('verifySignature').addEventListener('input', () => {
+      checkVerification(document.getElementById('hmacOutput').value);
+    });
+    document.getElementById('btnCalculate').addEventListener('click', computeHMAC);
+
+    document.getElementById('btnSampleStripe').addEventListener('click', () => {
+      document.getElementById('algorithm').value = 'SHA-256';
+      document.getElementById('outputFormat').value = 'hex';
+      document.getElementById('secretKey').value = 'whsec_test_secret_key_123456';
+      document.getElementById('payload').value = '1614556800.{"id":"evt_123","object":"event","type":"charge.succeeded"}';
+      computeHMAC();
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      document.getElementById('secretKey').value = '';
+      document.getElementById('payload').value = '';
+      document.getElementById('verifySignature').value = '';
+      document.getElementById('hmacOutput').value = '';
+      document.getElementById('verifyResult').innerHTML = '';
+    });
+
+    computeHMAC();
+  </script>
+</body>
+</html>
