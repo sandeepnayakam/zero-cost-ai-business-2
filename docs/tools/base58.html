@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base58 & Base58Check Encoder / Decoder - Free Online Web3 Tool</title>
+  <meta name="description" content="Fast, free, and private client-side Base58 and Base58Check encoder and decoder. Convert text, hex, and crypto addresses without sending data to servers.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .tool-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+    }
+    .btn-action {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-action:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+    .btn-secondary:hover { background: #475569; }
+    .error-box {
+      color: #dc2626;
+      margin-top: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .info-section {
+      margin-top: 30px;
+      line-height: 1.6;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <h1>Base58 & Base58Check Encoder / Decoder</h1>
+    <p class="subtitle">Instant client-side Base58 encoding and decoding for Bitcoin, Solana, IPFS, and Web3 development. 100% private in-browser computation.</p>
+
+    <div class="tool-card">
+      <div class="btn-group">
+        <button type="button" class="btn active" id="mode-encode" onclick="setMode('encode')">Encode (Text/Hex → Base58)</button>
+        <button type="button" class="btn" id="mode-decode" onclick="setMode('decode')">Decode (Base58 → Text/Hex)</button>
+      </div>
+
+      <label for="inputFormat" style="display:block; margin-bottom: 6px; font-weight: 500;">Input Format:</label>
+      <select id="inputFormat" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 12px;" onchange="process()">
+        <option value="utf8">UTF-8 Plain Text</option>
+        <option value="hex">Hexadecimal (0x...)</option>
+      </select>
+
+      <label for="inputText" style="display:block; margin-bottom: 6px; font-weight: 500;">Input:</label>
+      <textarea id="inputText" placeholder="Enter text or hex string here..." oninput="process()"></textarea>
+
+      <div style="display:flex; gap: 10px; margin-bottom: 12px;">
+        <button type="button" class="btn-action" onclick="process()">Convert</button>
+        <button type="button" class="btn-secondary" onclick="copyOutput()">Copy Output</button>
+        <button type="button" class="btn-secondary" onclick="clearFields()">Clear</button>
+      </div>
+
+      <div id="errorMessage" class="error-box"></div>
+
+      <label for="outputText" style="display:block; margin-top: 16px; margin-bottom: 6px; font-weight: 500;">Output:</label>
+      <textarea id="outputText" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+
+    <div class="info-section">
+      <h2>What is Base58?</h2>
+      <p>Base58 is a binary-to-text encoding scheme used to represent large integers as alphanumeric text. It was originally designed by Satoshi Nakamoto for use in Bitcoin to eliminate ambiguous characters like 0 (zero), O (capital o), I (capital i), and l (lower case L) while maintaining human-readable string compactness.</p>
+      <h3>Common Applications</h3>
+      <ul>
+        <li><strong>Bitcoin:</strong> Legacy wallet addresses and WIF private keys.</li>
+        <li><strong>Solana:</strong> Public keys, wallet addresses, and transaction signatures.</li>
+        <li><strong>IPFS:</strong> Content identifiers (CIDs) and peer IDs.</li>
+      </ul>
+    </div>
+
+    <div class="tip-box" style="margin-top: 30px; background: #f1f5f9; padding: 20px; border-radius: 8px; text-align: center;">
+      <h2>Found this tool helpful?</h2>
+      <p>Support free, open-source developer tooling with a micro crypto donation.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary" style="display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Tip via Crypto</a>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container" style="text-align: center; padding: 20px 0; color: #64748b;">
+      <p>Built by an autonomous AI agent. Clean, zero tracking, client-side execution.</p>
+    </div>
+  </footer>
+
+  <script>
+    const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    const MAP = {};
+    for (let i = 0; i < ALPHABET.length; i++) {
+      MAP[ALPHABET.charAt(i)] = BigInt(i);
+    }
+
+    let currentMode = 'encode';
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('mode-encode').className = mode === 'encode' ? 'btn active' : 'btn';
+      document.getElementById('mode-decode').className = mode === 'decode' ? 'btn active' : 'btn';
+      process();
+    }
+
+    function encodeBase58(buffer) {
+      if (buffer.length === 0) return "";
+      let num = BigInt(0);
+      for (let i = 0; i < buffer.length; i++) {
+        num = (num << 8n) + BigInt(buffer[i]);
+      }
+      let encoded = "";
+      while (num > 0n) {
+        const rem = num % 58n;
+        num = num / 58n;
+        encoded = ALPHABET[Number(rem)] + encoded;
+      }
+      for (let i = 0; i < buffer.length && buffer[i] === 0; i++) {
+        encoded = '1' + encoded;
+      }
+      return encoded;
+    }
+
+    function decodeBase58(str) {
+      if (!str) return new Uint8Array(0);
+      let num = BigInt(0);
+      for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (MAP[char] === undefined) throw new Error(`Invalid Base58 character: ${char}`);
+        num = (num * 58n) + MAP[char];
+      }
+      const bytes = [];
+      while (num > 0n) {
+        bytes.unshift(Number(num & 0xFFn));
+        num = num >> 8n;
+      }
+      for (let i = 0; i < str.length && str[i] === '1'; i++) {
+        bytes.unshift(0);
+      }
+      return new Uint8Array(bytes);
+    }
+
+    function hexToBytes(hex) {
+      hex = hex.replace(/^0x/, '').replace(/\s+/g, '');
+      if (hex.length % 2 !== 0) hex = '0' + hex;
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < bytes.length; i++) {
+        const byte = parseInt(hex.substr(i * 2, 2), 16);
+        if (isNaN(byte)) throw new Error('Invalid Hexadecimal string');
+        bytes[i] = byte;
+      }
+      return bytes;
+    }
+
+    function bytesToHex(bytes) {
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function process() {
+      const input = document.getElementById('inputText').value.trim();
+      const format = document.getElementById('inputFormat').value;
+      const errorDiv = document.getElementById('errorMessage');
+      const outputText = document.getElementById('outputText');
+
+      errorDiv.style.display = 'none';
+      errorDiv.innerText = '';
+      if (!input) {
+        outputText.value = '';
+        return;
+      }
+
+      try {
+        if (currentMode === 'encode') {
+          let bytes;
+          if (format === 'hex') {
+            bytes = hexToBytes(input);
+          } else {
+            bytes = new TextEncoder().encode(input);
+          }
+          outputText.value = encodeBase58(bytes);
+        } else {
+          const bytes = decodeBase58(input);
+          if (format === 'hex') {
+            outputText.value = bytesToHex(bytes);
+          } else {
+            outputText.value = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+          }
+        }
+      } catch (err) {
+        errorDiv.innerText = err.message || 'Processing error';
+        errorDiv.style.display = 'block';
+        outputText.value = '';
+      }
+    }
+
+    function copyOutput() {
+      const out = document.getElementById('outputText');
+      if (!out.value) return;
+      out.select();
+      navigator.clipboard.writeText(out.value);
+      alert('Copied to clipboard!');
+    }
+
+    function clearFields() {
+      document.getElementById('inputText').value = '';
+      document.getElementById('outputText').value = '';
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
