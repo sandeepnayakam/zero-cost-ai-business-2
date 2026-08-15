@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cron Expression Parser & Explainer - Free Online Tool</title>
+  <meta name="description" content="Free client-side Cron Expression Parser and Schedule Generator. Decode cron syntax into plain English and preview upcoming execution times.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .cron-container { max-width: 800px; margin: 0 auto; }
+    .input-group { margin-bottom: 1.5rem; }
+    .input-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+    .cron-input { width: 100%; font-family: monospace; font-size: 1.3rem; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+    .cron-explanation { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    .cron-explanation h3 { margin-top: 0; color: #1e293b; font-size: 1.1rem; }
+    .cron-human-readable { font-size: 1.2rem; font-weight: bold; color: #0284c7; margin: 0.5rem 0; }
+    .next-runs-list { list-style: none; padding-left: 0; margin: 0.5rem 0 0 0; }
+    .next-runs-list li { padding: 0.35rem 0; font-family: monospace; color: #334155; border-bottom: 1px dashed #e2e8f0; }
+    .next-runs-list li:last-child { border-bottom: none; }
+    .preset-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 1.5rem; }
+    .preset-btn { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .preset-btn:hover { background: #0284c7; color: #ffffff; }
+    .cron-breakdown { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; text-align: center; margin-top: 1rem; font-family: monospace; }
+    .breakdown-box { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.5rem; }
+    .breakdown-box .field-name { font-size: 0.75rem; color: #64748b; font-family: sans-serif; text-transform: uppercase; }
+    .breakdown-box .field-val { font-size: 1.1rem; font-weight: bold; color: #0f172a; }
+    .tip-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1.5rem; text-align: center; margin-top: 2rem; }
+    .tip-box h2 { color: #166534; margin-top: 0; font-size: 1.25rem; }
+    .tip-box p { color: #15803d; margin-bottom: 1rem; }
+    .btn-primary { display: inline-block; background: #16a34a; color: #ffffff; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+    .btn-primary:hover { background: #15803d; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container tool-page cron-container">
+    <h1>Cron Expression Parser & Schedule Generator</h1>
+    <p class="subtitle">Instant client-side cron syntax breakdown, human explanation, and upcoming execution forecast.</p>
+
+    <div class="input-group">
+      <label for="cronInput">Cron Expression (Minute Hour Day-of-Month Month Day-of-Week):</label>
+      <input type="text" id="cronInput" class="cron-input" value="*/15 * * * *" placeholder="e.g. 0 0 * * *">
+    </div>
+
+    <div>
+      <label><strong>Quick Presets:</strong></label>
+      <div class="preset-grid">
+        <button type="button" class="preset-btn" data-cron="* * * * *">Every minute (* * * * *)</button>
+        <button type="button" class="preset-btn" data-cron="*/5 * * * *">Every 5 mins (*/5 * * * *)</button>
+        <button type="button" class="preset-btn" data-cron="0 * * * *">Hourly at :00 (0 * * * *)</button>
+        <button type="button" class="preset-btn" data-cron="0 0 * * *">Daily at midnight (0 0 * * *)</button>
+        <button type="button" class="preset-btn" data-cron="0 12 * * 1-5">Weekdays noon (0 12 * * 1-5)</button>
+        <button type="button" class="preset-btn" data-cron="0 0 * * 0">Weekly Sunday (0 0 * * 0)</button>
+        <button type="button" class="preset-btn" data-cron="0 0 1 * *">Monthly 1st (0 0 1 * *)</button>
+      </div>
+    </div>
+
+    <div class="cron-explanation">
+      <h3>Human Readable Schedule</h3>
+      <div id="humanReadable" class="cron-human-readable">Every 15 minutes</div>
+      
+      <div class="cron-breakdown">
+        <div class="breakdown-box"><div class="field-name">Minute</div><div id="colMin" class="field-val">*/15</div></div>
+        <div class="breakdown-box"><div class="field-name">Hour</div><div id="colHour" class="field-val">*</div></div>
+        <div class="breakdown-box"><div class="field-name">Day (Month)</div><div id="colDom" class="field-val">*</div></div>
+        <div class="breakdown-box"><div class="field-name">Month</div><div id="colMonth" class="field-val">*</div></div>
+        <div class="breakdown-box"><div class="field-name">Day (Week)</div><div id="colDow" class="field-val">*</div></div>
+      </div>
+
+      <h3 style="margin-top: 1.5rem;">Next 5 Simulated Run Times (Local Time)</h3>
+      <ul id="nextRuns" class="next-runs-list"></ul>
+    </div>
+
+    <div class="tip-box">
+      <h2>Found this useful?</h2>
+      <p>This zero-cost autonomous tool is free forever. Tips in crypto support continuous tool development and zero-ad hosting.</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto (BTC/ETH/SOL/TRX)</a>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <p>Built by an autonomous AI business agent running 100% on client-side code.</p>
+    </div>
+  </footer>
+  <script>
+    function parseCronPart(part, min, max) {
+      const valid = new Set();
+      const tokens = part.split(',');
+      for (const token of tokens) {
+        if (token === '*') {
+          for (let i = min; i <= max; i++) valid.add(i);
+        } else if (token.startsWith('*/')) {
+          const step = parseInt(token.slice(2), 10);
+          if (!isNaN(step) && step > 0) {
+            for (let i = min; i <= max; i += step) valid.add(i);
+          }
+        } else if (token.includes('-')) {
+          const [startStr, endStr] = token.split('-');
+          const start = parseInt(startStr, 10);
+          const end = parseInt(endStr, 10);
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+            for (let i = Math.max(min, start); i <= Math.min(max, end); i++) valid.add(i);
+          }
+        } else {
+          const val = parseInt(token, 10);
+          if (!isNaN(val) && val >= min && val <= max) valid.add(val);
+        }
+      }
+      return valid;
+    }
+
+    function explainCron(m, h, dom, mon, dow) {
+      if (m === '*' && h === '*' && dom === '*' && mon === '*' && dow === '*') return 'Runs every minute (* * * * *)';
+      if (m.startsWith('*/') && h === '*' && dom === '*' && mon === '*' && dow === '*') return `Runs every ${m.slice(2)} minutes`;
+      if (m === '0' && h === '*' && dom === '*' && mon === '*' && dow === '*') return 'Runs every hour on the hour';
+      if (dom === '*' && mon === '*' && dow === '*') return `Runs daily at ${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+      if (mon === '*' && dom === '*' && dow !== '*') return `Runs at ${h.padStart(2, '0')}:${m.padStart(2, '0')} on day-of-week ${dow}`;
+      return `Custom schedule: Min (${m}), Hour (${h}), Day (${dom}), Month (${mon}), Weekday (${dow})`;
+    }
+
+    function updateCron() {
+      const input = document.getElementById('cronInput').value.trim();
+      const parts = input.split(/\s+/);
+      if (parts.length !== 5) {
+        document.getElementById('humanReadable').innerText = 'Please enter a valid 5-part cron expression (e.g. 0 0 * * *)';
+        document.getElementById('nextRuns').innerHTML = '<li>Invalid cron syntax</li>';
+        return;
+      }
+
+      const [min, hour, dom, mon, dow] = parts;
+      document.getElementById('colMin').innerText = min;
+      document.getElementById('colHour').innerText = hour;
+      document.getElementById('colDom').innerText = dom;
+      document.getElementById('colMonth').innerText = mon;
+      document.getElementById('colDow').innerText = dow;
+
+      document.getElementById('humanReadable').innerText = explainCron(min, hour, dom, mon, dow);
+
+      const validMins = parseCronPart(min, 0, 59);
+      const validHours = parseCronPart(hour, 0, 23);
+      const validDoms = parseCronPart(dom, 1, 31);
+      const validMons = parseCronPart(mon, 1, 12);
+      const validDows = parseCronPart(dow, 0, 6);
+
+      const nextDates = [];
+      let curr = new Date();
+      curr.setSeconds(0, 0);
+      curr.setMinutes(curr.getMinutes() + 1);
+
+      for (let i = 0; i < 50000 && nextDates.length < 5; i++) {
+        const m = curr.getMinutes();
+        const h = curr.getHours();
+        const d = curr.getDate();
+        const mo = curr.getMonth() + 1;
+        const dw = curr.getDay();
+
+        if (validMons.has(mo) && validDoms.has(d) && validDows.has(dw) && validHours.has(h) && validMins.has(m)) {
+          nextDates.push(new Date(curr));
+        }
+        curr.setMinutes(curr.getMinutes() + 1);
+      }
+
+      const nextList = document.getElementById('nextRuns');
+      if (nextDates.length === 0) {
+        nextList.innerHTML = '<li>No match found in foreseeable schedule</li>';
+      } else {
+        nextList.innerHTML = nextDates.map(d => `<li>${d.toLocaleString()} (UTC: ${d.toISOString().replace('T', ' ').slice(0, 19)})</li>`).join('');
+      }
+    }
+
+    document.getElementById('cronInput').addEventListener('input', updateCron);
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('cronInput').value = btn.getAttribute('data-cron');
+        updateCron();
+      });
+    });
+    updateCron();
+  </script>
+</body>
+</html>
