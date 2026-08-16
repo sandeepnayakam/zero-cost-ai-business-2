@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cURL to Fetch & Python Converter - Free Online Developer Tool</title>
+  <meta name="description" content="Easily convert cURL commands to JavaScript fetch, Python requests, and Axios. Fast, secure, 100% client-side parser.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .converter-container { max-width: 900px; margin: 0 auto; }
+    .io-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+    @media (min-width: 768px) { .io-grid { grid-template-columns: 1fr 1fr; } }
+    textarea { width: 100%; min-height: 260px; font-family: monospace; font-size: 13px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background: #fafafa; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; align-items: center; }
+    .lang-btn { padding: 8px 14px; border: 1px solid #0066cc; background: #fff; color: #0066cc; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .lang-btn.active { background: #0066cc; color: #fff; }
+    .action-btn { padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .action-btn:hover { background: #218838; }
+    .copy-btn { padding: 8px 14px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .copy-btn:hover { background: #5a6268; }
+    .preset-btn { font-size: 12px; padding: 4px 8px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 3px; cursor: pointer; }
+    .tip-box { margin-top: 3rem; padding: 1.5rem; background: #f0f7ff; border: 1px solid #cce5ff; border-radius: 8px; text-align: center; }
+    .status-msg { margin-top: 5px; font-size: 13px; font-weight: bold; color: #28a745; min-height: 18px; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">⚡<span>FreeTools</span></a>
+    <nav>
+      <a href="/tools/">All Tools</a>
+      <a href="/guides/crypto-tips.html">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container tool-page converter-container">
+  <h1>cURL to Code Converter</h1>
+  <p class="subtitle">Convert raw cURL CLI commands to clean JavaScript Fetch, Python Requests, or Axios code instantly in your browser.</p>
+
+  <div style="margin: 10px 0;">
+    <span style="font-size: 13px; color: #666; font-weight: 600;">Load Sample: </span>
+    <button class="preset-btn" onclick="loadSample('get')">GET Request</button>
+    <button class="preset-btn" onclick="loadSample('post')">JSON POST</button>
+    <button class="preset-btn" onclick="loadSample('auth')">Bearer Auth</button>
+  </div>
+
+  <div class="controls">
+    <button class="lang-btn active" id="tab-fetch" onclick="switchLang('fetch')">JavaScript (fetch)</button>
+    <button class="lang-btn" id="tab-python" onclick="switchLang('python')">Python (requests)</button>
+    <button class="lang-btn" id="tab-axios" onclick="switchLang('axios')">Node / Axios</button>
+    <button class="action-btn" onclick="convertCurl()">Convert Now</button>
+    <button class="copy-btn" onclick="copyOutput()">Copy Output</button>
+  </div>
+
+  <div class="io-grid">
+    <div>
+      <label style="font-weight: bold; display: block; margin-bottom: 6px;">Raw cURL Command:</label>
+      <textarea id="curlInput" placeholder="curl -X POST https://api.example.com/v1/data \\
+  -H 'Content-Type: application/json' \\
+  -d '{\&quot;key\&quot;: \&quot;value\&quot;}'"></textarea>
+    </div>
+    <div>
+      <label style="font-weight: bold; display: block; margin-bottom: 6px;">Generated Code:</label>
+      <textarea id="codeOutput" readonly placeholder="Converted code will appear here..."></textarea>
+    </div>
+  </div>
+  <div id="statusMsg" class="status-msg"></div>
+
+  <div class="tip-box">
+    <h3>Found this tool useful?</h3>
+    <p>Support our free, privacy-first open web tools with a small crypto tip.</p>
+    <a href="/guides/crypto-tips.html" class="btn btn-primary" style="display:inline-block; margin-top:8px; padding:10px 20px; text-decoration:none;">Tip via Crypto</a>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built by an autonomous AI agent operating zero-cost web services.</p>
+  </div>
+</footer>
+
+<script>
+let currentTarget = 'fetch';
+
+function switchLang(lang) {
+  currentTarget = lang;
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('tab-' + lang).classList.add('active');
+  convertCurl();
+}
+
+function parseCurl(raw) {
+  let cleaned = raw.replace(/\\\\\\r?\
+/g, ' ').trim();
+  if (!cleaned.startsWith('curl')) {
+    cleaned = 'curl ' + cleaned;
+  }
+  
+  const args = [];
+  let match;
+  const re = /([^"]\\S*|".+?"|'.+?')\\s*/g;
+  while ((match = re.exec(cleaned)) !== null) {
+    let val = match[1];
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    args.push(val);
+  }
+
+  let method = 'GET';
+  let url = '';
+  const headers = {};
+  let data = null;
+
+  for (let i = 1; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '-X' || arg === '--request') {
+      method = (args[++i] || 'GET').toUpperCase();
+    } else if (arg === '-H' || arg === '--header') {
+      const headerLine = args[++i] || '';
+      const splitIdx = headerLine.indexOf(':');
+      if (splitIdx > -1) {
+        const key = headerLine.slice(0, splitIdx).trim();
+        const val = headerLine.slice(splitIdx + 1).trim();
+        headers[key] = val;
+      }
+    } else if (arg === '-d' || arg === '--data' || arg === '--data-raw') {
+      data = args[++i] || '';
+      if (method === 'GET') method = 'POST';
+    } else if (!arg.startsWith('-') && !url) {
+      url = arg;
+    }
+  }
+
+  return { method, url, headers, data };
+}
+
+function convertCurl() {
+  const raw = document.getElementById('curlInput').value.trim();
+  const outArea = document.getElementById('codeOutput');
+  const status = document.getElementById('statusMsg');
+  status.textContent = '';
+
+  if (!raw) {
+    outArea.value = '';
+    return;
+  }
+
+  try {
+    const { method, url, headers, data } = parseCurl(raw);
+    if (!url) {
+      outArea.value = '// Error: No URL found in cURL command';
+      return;
+    }
+
+    if (currentTarget === 'fetch') {
+      const opts = { method };
+      if (Object.keys(headers).length > 0) opts.headers = headers;
+      if (data) opts.body = data;
+
+      let code = `fetch("${url}", {
+  method: "${method}",
+`;
+      if (Object.keys(headers).length > 0) {
+        code += `  headers: ${JSON.stringify(headers, null, 4).replace(/\
+/g, '\
+  ')},
+`;
+      }
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          code += `  body: JSON.stringify(${JSON.stringify(parsed, null, 4).replace(/\
+/g, '\
+  ')})
+`;
+        } catch(e) {
+          code += `  body: ${JSON.stringify(data)}
+`;
+        }
+      }
+      code += `})
+  .then(res => res.json())
+  .then(data => console.log(data))
+  .catch(err => console.error(err));`;
+      outArea.value = code;
+    } else if (currentTarget === 'python') {
+      let code = `import requests
+
+url = "${url}"
+`;
+      if (Object.keys(headers).length > 0) {
+        code += `headers = ${JSON.stringify(headers, null, 4)}
+`;
+      } else {
+        code += `headers = {}
+`;
+      }
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          code += `payload = ${JSON.stringify(parsed, null, 4)}
+`;
+          code += `response = requests.${method.toLowerCase()}(url, headers=headers, json=payload)
+`;
+        } catch(e) {
+          code += `payload = ${JSON.stringify(data)}
+`;
+          code += `response = requests.${method.toLowerCase()}(url, headers=headers, data=payload)
+`;
+        }
+      } else {
+        code += `response = requests.${method.toLowerCase()}(url, headers=headers)
+`;
+      }
+      code += `print(response.status_code)
+print(response.json())`;
+      outArea.value = code;
+    } else if (currentTarget === 'axios') {
+      let code = `const axios = require('axios');
+
+const config = {
+  method: '${method.toLowerCase()}',
+  url: '${url}',
+`;
+      if (Object.keys(headers).length > 0) {
+        code += `  headers: ${JSON.stringify(headers, null, 4).replace(/\
+/g, '\
+  ')},
+`;
+      }
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          code += `  data: ${JSON.stringify(parsed, null, 4).replace(/\
+/g, '\
+  ')}
+`;
+        } catch(e) {
+          code += `  data: ${JSON.stringify(data)}
+`;
+        }
+      }
+      code += `};
+
+axios(config)
+  .then(response => console.log(JSON.stringify(response.data)))
+  .catch(error => console.error(error));`;
+      outArea.value = code;
+    }
+  } catch (err) {
+    outArea.value = '// Parser error: ' + err.message;
+  }
+}
+
+function copyOutput() {
+  const outArea = document.getElementById('codeOutput');
+  if (!outArea.value) return;
+  navigator.clipboard.writeText(outArea.value).then(() => {
+    const status = document.getElementById('statusMsg');
+    status.textContent = 'Copied to clipboard!';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  });
+}
+
+function loadSample(type) {
+  const input = document.getElementById('curlInput');
+  if (type === 'get') {
+    input.value = `curl -X GET "https://api.github.com/repos/octocat/Hello-World" \\
+  -H "Accept: application/vnd.github.v3+json"`;
+  } else if (type === 'post') {
+    input.value = `curl -X POST "https://httpbin.org/post" \\
+  -H "Content-Type: application/json" \\
+  -d '{"name": "Alice", "role": "developer"}'`;
+  } else if (type === 'auth') {
+    input.value = `curl -X GET "https://api.example.com/protected" \\
+  -H "Authorization: Bearer my_secret_token_123" \\
+  -H "Content-Type: application/json"`;
+  }
+  convertCurl();
+}
+
+document.getElementById('curlInput').addEventListener('input', convertCurl);
+</script>
+</body>
+</html>
