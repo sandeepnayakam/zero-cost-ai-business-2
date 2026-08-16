@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XML to JSON & JSON to XML Converter - Free Online Developer Tool</title>
+  <meta name="description" content="Free, fast, and privacy-friendly online XML to JSON and JSON to XML converter. Convert structured XML to JSON objects or JSON to XML format instantly in your browser.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .converter-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    @media (max-width: 768px) {
+      .converter-container { grid-template-columns: 1fr; }
+    }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      background: #1e1e2e;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      color: #cdd6f4;
+    }
+    .panel-title { font-weight: bold; font-size: 1.1rem; }
+    textarea {
+      width: 100%;
+      height: 350px;
+      background: #11111b;
+      color: #a6adc8;
+      border: 1px solid #313244;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Fira Code', 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+      box-sizing: border-box;
+      line-height: 1.4;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #89b4fa;
+      color: #cdd6f4;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    .btn {
+      background: #89b4fa;
+      color: #11111b;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #b4befe; }
+    .btn-secondary {
+      background: #313244;
+      color: #cdd6f4;
+    }
+    .btn-secondary:hover { background: #45475a; }
+    .status {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #a6adc8;
+    }
+    .status.error { color: #f38ba8; font-weight: bold; }
+    .status.success { color: #a6e3a1; }
+    .tip-card {
+      background: #181825;
+      border: 1px solid #313244;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 30px;
+      text-align: center;
+    }
+    .tip-card h3 { color: #f9e2af; margin-bottom: 10px; }
+    .tip-card p { color: #a6adc8; margin-bottom: 15px; }
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      text-align: left;
+      margin-top: 15px;
+    }
+    .wallet-item {
+      background: #11111b;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #313244;
+      font-size: 0.8rem;
+    }
+    .wallet-item strong { color: #89b4fa; display: block; margin-bottom: 4px; }
+    .wallet-item code { color: #a6adc8; word-break: break-all; user-select: all; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/" class="logo">⚡<span>FreeTools</span></a>
+    <nav>
+      <a href="/tools/">All Tools</a>
+      <a href="/guides/crypto-tips.html">Support Us</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <h1>XML ⇄ JSON Converter</h1>
+  <p class="subtitle">Fast, bidirectional client-side XML and JSON converter. 100% private — your data never leaves your browser.</p>
+
+  <div class="controls">
+    <button id="btn-xml-to-json" class="btn">Convert XML ➔ JSON</button>
+    <button id="btn-json-to-xml" class="btn">Convert JSON ➔ XML</button>
+    <button id="btn-sample-xml" class="btn btn-secondary">Load Sample XML</button>
+    <button id="btn-sample-json" class="btn btn-secondary">Load Sample JSON</button>
+    <button id="btn-clear" class="btn btn-secondary">Clear All</button>
+  </div>
+
+  <div class="converter-container">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Input / XML</span>
+        <button id="btn-copy-input" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">Copy</button>
+      </div>
+      <textarea id="input-text" placeholder="Paste XML or JSON here..."></textarea>
+      <div id="input-status" class="status">Ready</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Output / Result</span>
+        <div>
+          <button id="btn-download-output" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">Download</button>
+          <button id="btn-copy-output" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">Copy</button>
+        </div>
+      </div>
+      <textarea id="output-text" readonly placeholder="Converted output will appear here..."></textarea>
+      <div id="output-status" class="status">Awaiting conversion</div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <h3>☕ Support Autonomous Open Source Tools</h3>
+    <p>This zero-cost tool operates entirely client-side without ads or tracking. If you find it helpful, please consider sending a small crypto tip!</p>
+    <div class="wallet-grid">
+      <div class="wallet-item">
+        <strong>Bitcoin (BTC)</strong>
+        <code>bc1qh3areygq598ntxht0yp5yv87ej7g6aqvw8fl4z</code>
+      </div>
+      <div class="wallet-item">
+        <strong>Ethereum / ERC-20</strong>
+        <code>0xd6DFE6b54bF3dBC919Fde57009452fe6bbb0D997</code>
+      </div>
+      <div class="wallet-item">
+        <strong>Solana (SOL)</strong>
+        <code>2emXSLoziaB5wdC8y48ovbu41agh9PzR5ro8o7kRDUvM</code>
+      </div>
+      <div class="wallet-item">
+        <strong>Tron (USDT-TRC20)</strong>
+        <code>TJxkyJW57Tb8qmvvv5rCh3L2FYssRvWFEv</code>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built autonomously by zero-cost AI agents. All tools run 100% in your browser.</p>
+  </div>
+</footer>
+
+<script>
+  function xmlToJson(xml) {
+    let obj = {};
+    if (xml.nodeType === 1) {
+      if (xml.attributes.length > 0) {
+        obj["@attributes"] = {};
+        for (let j = 0; j < xml.attributes.length; j++) {
+          let attribute = xml.attributes.item(j);
+          obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+        }
+      }
+    } else if (xml.nodeType === 3) {
+      return xml.nodeValue.trim();
+    }
+
+    if (xml.hasChildNodes()) {
+      for (let i = 0; i < xml.childNodes.length; i++) {
+        let item = xml.childNodes.item(i);
+        let nodeName = item.nodeName;
+        if (item.nodeType === 3) {
+          let val = item.nodeValue.trim();
+          if (val.length > 0) {
+            if (xml.childNodes.length === 1 && (!xml.attributes || xml.attributes.length === 0)) {
+              return val;
+            }
+            obj["#text"] = val;
+          }
+        } else if (item.nodeType === 1) {
+          let result = xmlToJson(item);
+          if (typeof obj[nodeName] === "undefined") {
+            obj[nodeName] = result;
+          } else {
+            if (!Array.isArray(obj[nodeName])) {
+              let old = obj[nodeName];
+              obj[nodeName] = [old];
+            }
+            obj[nodeName].push(result);
+          }
+        }
+      }
+    }
+    return obj;
+  }
+
+  function jsonToXml(json, rootName = "root") {
+    function parse(val, name) {
+      if (val === null || val === undefined) return `<${name}/>`;
+      if (typeof val !== "object") return `<${name}>${escapeXml(String(val))}</${name}>`;
+      
+      let attrs = "";
+      let children = "";
+      
+      if (val["@attributes"]) {
+        for (let key in val["@attributes"]) {
+          attrs += ` ${key}="${escapeXml(String(val["@attributes"][key]))}"`;
+        }
+      }
+
+      if (Array.isArray(val)) {
+        return val.map(item => parse(item, name)).join("\n");
+      }
+
+      for (let key in val) {
+        if (key === "@attributes") continue;
+        if (key === "#text") {
+          children += escapeXml(String(val[key]));
+        } else if (Array.isArray(val[key])) {
+          children += val[key].map(item => parse(item, key)).join("\n");
+        } else {
+          children += parse(val[key], key);
+        }
+      }
+      return `<${name}${attrs}>${children}</${name}>`;
+    }
+    return `<?xml version="1.0" encoding="UTF-8"?>\n${parse(json, rootName)}`;
+  }
+
+  function escapeXml(str) {
+    return str.replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&apos;');
+  }
+
+  const inputEl = document.getElementById('input-text');
+  const outputEl = document.getElementById('output-text');
+  const inputStatus = document.getElementById('input-status');
+  const outputStatus = document.getElementById('output-status');
+
+  document.getElementById('btn-xml-to-json').addEventListener('click', () => {
+    try {
+      const raw = inputEl.value.trim();
+      if (!raw) {
+        outputStatus.textContent = 'Please enter XML content';
+        outputStatus.className = 'status error';
+        return;
+      }
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(raw, 'application/xml');
+      const errorNode = doc.querySelector('parsererror');
+      if (errorNode) {
+        throw new Error(errorNode.textContent || 'XML parsing error');
+      }
+      const converted = xmlToJson(doc.documentElement);
+      const resultWrapper = {};
+      resultWrapper[doc.documentElement.nodeName] = converted;
+      outputEl.value = JSON.stringify(resultWrapper, null, 2);
+      outputStatus.textContent = 'Successfully converted XML to JSON!';
+      outputStatus.className = 'status success';
+    } catch (err) {
+      outputStatus.textContent = 'Error: ' + err.message;
+      outputStatus.className = 'status error';
+    }
+  });
+
+  document.getElementById('btn-json-to-xml').addEventListener('click', () => {
+    try {
+      const raw = inputEl.value.trim();
+      if (!raw) {
+        outputStatus.textContent = 'Please enter JSON content';
+        outputStatus.className = 'status error';
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      let rootTag = 'root';
+      let payload = parsed;
+      if (typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length === 1) {
+        rootTag = Object.keys(parsed)[0];
+        payload = parsed[rootTag];
+      }
+      outputEl.value = jsonToXml(payload, rootTag);
+      outputStatus.textContent = 'Successfully converted JSON to XML!';
+      outputStatus.className = 'status success';
+    } catch (err) {
+      outputStatus.textContent = 'Error: ' + err.message;
+      outputStatus.className = 'status error';
+    }
+  });
+
+  document.getElementById('btn-sample-xml').addEventListener('click', () => {
+    inputEl.value = `<?xml version="1.0" encoding="UTF-8"?>\n<project id="101">\n  <name>Web3 Tools Hub</name>\n  <status active="true">live</status>\n  <features>\n    <item priority="high">Fast parsing</item>\n    <item priority="medium">Zero tracking</item>\n  </features>\n</project>`;
+    inputStatus.textContent = 'Sample XML loaded';
+    inputStatus.className = 'status success';
+  });
+
+  document.getElementById('btn-sample-json').addEventListener('click', () => {
+    inputEl.value = JSON.stringify({
+      bookstore: {
+        book: [
+          { "@attributes": { category: "fiction" }, title: "The Crypto Odyssey", price: 19.99 },
+          { "@attributes": { category: "tech" }, title: "Autonomous Agents in Practice", price: 29.99 }
+        ]
+      }
+    }, null, 2);
+    inputStatus.textContent = 'Sample JSON loaded';
+    inputStatus.className = 'status success';
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    inputEl.value = '';
+    outputEl.value = '';
+    inputStatus.textContent = 'Cleared';
+    outputStatus.textContent = 'Awaiting conversion';
+    inputStatus.className = 'status';
+    outputStatus.className = 'status';
+  });
+
+  document.getElementById('btn-copy-input').addEventListener('click', () => {
+    if (inputEl.value) {
+      navigator.clipboard.writeText(inputEl.value);
+      inputStatus.textContent = 'Input copied to clipboard!';
+      inputStatus.className = 'status success';
+    }
+  });
+
+  document.getElementById('btn-copy-output').addEventListener('click', () => {
+    if (outputEl.value) {
+      navigator.clipboard.writeText(outputEl.value);
+      outputStatus.textContent = 'Output copied to clipboard!';
+      outputStatus.className = 'status success';
+    }
+  });
+
+  document.getElementById('btn-download-output').addEventListener('click', () => {
+    if (!outputEl.value) return;
+    const isXml = outputEl.value.trim().startsWith('<?xml') || outputEl.value.trim().startsWith('<');
+    const blob = new Blob([outputEl.value], { type: isXml ? 'application/xml' : 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = isXml ? 'converted.xml' : 'converted.json';
+    a.click();
+  });
+</script>
+</body>
+</html>
