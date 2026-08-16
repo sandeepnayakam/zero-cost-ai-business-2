@@ -1,11 +1,10 @@
 {
-  "timestamp": 1786810315.3721201,
+  "timestamp": 1786896761.0319152,
   "models": [
     "gemini-2.5-flash",
     "gemini-2.5-pro",
     "gemini-2.5-flash-preview-tts",
     "gemini-2.5-pro-preview-tts",
-    "gemini-3.7-flash-video-understanding-eap",
     "gemma-4-26b-a4b-it",
     "gemma-4-31b-it",
     "gemini-flash-latest",
