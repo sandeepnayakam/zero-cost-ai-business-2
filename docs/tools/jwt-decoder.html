@@ -1,1 +1,155 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JWT Decoder - Free Online</title><meta name="description" content="Decode JSON Web Tokens instantly client-side."><link rel="stylesheet" href="/assets/css/style.css"></head><body><header><div class="container"><a href="/" class="logo">⚡<span>FreeTools</span></a><nav><a href="/tools/">Tools</a><a href="/guides/crypto-tips.html">Support</a></nav></div></header><main class="container tool-page"><h1>JWT Decoder</h1><p class="subtitle">Decode JSON Web Tokens locally in your browser.</p><div><textarea id="jwt-input" placeholder="Paste JWT token here..." rows="4" style="width:100%"></textarea></div><div style="margin-top:15px;"><h3>Header</h3><pre id="header-out">{}</pre><h3>Payload</h3><pre id="payload-out">{}</pre></div><div class="tip-box"><h2>Found this useful?</h2><p>Consider a small crypto tip.</p><a href="/guides/crypto-tips.html" class="btn btn-primary">Tip via Crypto</a></div></main><footer><div class="container"><p>Built by an autonomous AI agent.</p></div></footer><script>document.getElementById('jwt-input').addEventListener('input', function() { const token = this.value.trim(); const parts = token.split('.'); if(parts.length === 3) { try { document.getElementById('header-out').textContent = JSON.stringify(JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/'))), null, 2); document.getElementById('payload-out').textContent = JSON.stringify(JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))), null, 2); } catch(e) { document.getElementById('header-out').textContent = 'Invalid token header/payload'; document.getElementById('payload-out').textContent = 'Invalid token header/payload'; } } });</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT Decoder - Decode JSON Web Tokens Online Free</title>
+  <meta name="description" content="Fast, secure, 100% client-side JWT decoder tool. Inspect JWT header, payload, and claims without sending sensitive tokens to any server.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .jwt-container { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
+    .input-section textarea { width: 100%; min-height: 120px; font-family: monospace; font-size: 14px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background: #fafafa; }
+    .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .output-grid { grid-template-columns: 1fr; } }
+    .output-card { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .output-card h3 { margin-top: 0; font-size: 16px; border-bottom: 2px solid #0366d6; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .output-card pre { background: #f6f8fa; padding: 12px; border-radius: 6px; overflow-x: auto; font-family: monospace; font-size: 13px; max-height: 350px; }
+    .badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #e1e4e8; color: #24292e; text-transform: uppercase; }
+    .badge.valid { background: #28a745; color: #fff; }
+    .badge.expired { background: #d73a49; color: #fff; }
+    .btn-copy { background: #0366d6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .btn-copy:hover { background: #0256b9; }
+    .tip-box { margin-top: 30px; padding: 20px; background: #f0f7ff; border: 1px solid #c8e1ff; border-radius: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container tool-page">
+    <h1>JWT Decoder &amp; Token Inspector</h1>
+    <p class="subtitle">Instant, client-side JSON Web Token decoding. Zero data sent to servers.</p>
+
+    <div class="jwt-container">
+      <div class="input-section">
+        <label for="jwtInput"><strong>Paste Encoded JWT:</strong></label>
+        <textarea id="jwtInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"></textarea>
+        <div style="margin-top: 8px; display: flex; gap: 10px;">
+          <button class="btn btn-primary" id="btnSample">Load Sample Token</button>
+          <button class="btn btn-secondary" id="btnClear">Clear</button>
+        </div>
+      </div>
+
+      <div class="output-grid">
+        <div class="output-card">
+          <h3>Header <button class="btn-copy" onclick="copyText('headerOutput')">Copy</button></h3>
+          <pre id="headerOutput">// Decoded header will appear here</pre>
+        </div>
+        <div class="output-card">
+          <h3>Payload <span id="expiryBadge" class="badge" style="display:none;"></span> <button class="btn-copy" onclick="copyText('payloadOutput')">Copy</button></h3>
+          <pre id="payloadOutput">// Decoded payload will appear here</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <h2>Found this developer tool helpful?</h2>
+      <p>This tool is 100% free and open source. Consider leaving a crypto micro-tip to keep the project alive!</p>
+      <a href="/guides/crypto-tips.html" class="btn btn-primary">Support via Crypto Tip</a>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <p>Built autonomously by AI agent. No tracking or telemetry.</p>
+    </div>
+  </footer>
+  <script>
+    function base64UrlDecode(str) {
+      let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      try {
+        return decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+      } catch (e) {
+        return atob(base64);
+      }
+    }
+
+    function decodeJWT() {
+      const token = document.getElementById('jwtInput').value.trim();
+      const headerEl = document.getElementById('headerOutput');
+      const payloadEl = document.getElementById('payloadOutput');
+      const badgeEl = document.getElementById('expiryBadge');
+
+      if (!token) {
+        headerEl.textContent = '// Decoded header will appear here';
+        payloadEl.textContent = '// Decoded payload will appear here';
+        badgeEl.style.display = 'none';
+        return;
+      }
+
+      const parts = token.split('.');
+      if (parts.length < 2) {
+        headerEl.textContent = 'Error: Invalid JWT structure (must have at least 2 parts separated by dots)';
+        payloadEl.textContent = '';
+        badgeEl.style.display = 'none';
+        return;
+      }
+
+      try {
+        const headerStr = base64UrlDecode(parts[0]);
+        const headerJson = JSON.parse(headerStr);
+        headerEl.textContent = JSON.stringify(headerJson, null, 2);
+      } catch (err) {
+        headerEl.textContent = 'Error decoding header: ' + err.message;
+      }
+
+      try {
+        const payloadStr = base64UrlDecode(parts[1]);
+        const payloadJson = JSON.parse(payloadStr);
+        payloadEl.textContent = JSON.stringify(payloadJson, null, 2);
+
+        if (payloadJson.exp) {
+          const expDate = new Date(payloadJson.exp * 1000);
+          const isExpired = Date.now() > expDate.getTime();
+          badgeEl.style.display = 'inline-block';
+          if (isExpired) {
+            badgeEl.className = 'badge expired';
+            badgeEl.textContent = 'Expired: ' + expDate.toISOString();
+          } else {
+            badgeEl.className = 'badge valid';
+            badgeEl.textContent = 'Valid until: ' + expDate.toISOString();
+          }
+        } else {
+          badgeEl.style.display = 'none';
+        }
+      } catch (err) {
+        payloadEl.textContent = 'Error decoding payload: ' + err.message;
+        badgeEl.style.display = 'none';
+      }
+    }
+
+    function copyText(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+
+    document.getElementById('jwtInput').addEventListener('input', decodeJWT);
+    document.getElementById('btnSample').addEventListener('click', function() {
+      document.getElementById('jwtInput').value = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFsaWNlIERldiIsImFkbWluIjp0cnVlLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.signature';
+      decodeJWT();
+    });
+    document.getElementById('btnClear').addEventListener('click', function() {
+      document.getElementById('jwtInput').value = '';
+      decodeJWT();
+    });
+  </script>
+</body>
+</html>
