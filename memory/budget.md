@@ -1,16 +1,16 @@
 # Daily LLM Budget Tracker
 
 Date: 2026-08-20
-Last Updated: 2026-08-20 08:04:02 UTC
+Last Updated: 2026-08-20 09:06:06 UTC
 
 ## Provider Usage (resets at UTC midnight)
 
 groq: 0 / 14000  (remaining: 14000)  [OK]
-gemini: 20 / 1500  (remaining: 1480)  [OK]
+gemini: 23 / 1500  (remaining: 1477)  [OK]
 cerebras: 0 / 1000  (remaining: 1000)  [OK]
 sambanova: 0 / 500  (remaining: 500)  [OK]
 cloudflare: 0 / 1000  (remaining: 1000)  [OK]
 huggingface: 0 / 500  (remaining: 500)  [OK]
 openrouter: 0 / 50  (remaining: 50)  [OK]
 
-TOTAL: 20 / 18550  (remaining: 18530)
+TOTAL: 23 / 18550  (remaining: 18527)
