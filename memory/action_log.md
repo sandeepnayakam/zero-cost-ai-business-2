@@ -4171,3 +4171,16 @@ so this should not recur. Old entries removed to avoid biasing the LLM.
       Result: Cycle ended by agent.
 
 ---
+
+## Run: 2026-08-20 17:54:38 UTC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Model:    gemini
+  Budget:   full (53/18550 used)
+  Steps:    1 / 5
+  Outcome:  Step 1: done — [PARSE FALLBACK] LLM started with prose instead of JSON. First line: 'The user wants a valid JSON ob
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  → Step 1: done
+      Result: Cycle ended by agent.
+
+---
