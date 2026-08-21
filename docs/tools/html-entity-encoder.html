@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Entity Encoder & Decoder - Free Online Developer Tool</title>
+  <meta name="description" content="Easily encode and decode HTML entities online. Convert special characters to HTML entities and back instantly with zero server roundtrips.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .tool-container { max-width: 800px; margin: 0 auto; padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; }
+    textarea { width: 100%; height: 140px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px; box-sizing: border-box; }
+    .btn-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    button { padding: 10px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background-color 0.2s; }
+    .btn-primary { background-color: #2563eb; color: #fff; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-secondary { background-color: #4b5563; color: #fff; }
+    .btn-secondary:hover { background-color: #374151; }
+    .btn-copy { background-color: #10b981; color: #fff; }
+    .btn-copy:hover { background-color: #059669; }
+    .tip-box { margin-top: 30px; padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; text-align: center; }
+    .tip-box a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    .tip-box a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">⚡<span>FreeTools</span></a>
+      <nav>
+        <a href="/tools/">Tools</a>
+        <a href="/guides/crypto-tips.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container tool-page">
+    <div class="tool-container">
+      <h1>HTML Entity Encoder & Decoder</h1>
+      <p class="subtitle">Quickly encode special characters into HTML entities or decode HTML entities back to plain text.</p>
+      
+      <div class="form-group">
+        <label for="input-text">Input Text:</label>
+        <textarea id="input-text" placeholder="Enter text or HTML entities here..."></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button type="button" class="btn-primary" onclick="encodeEntities()">Encode HTML Entities</button>
+        <button type="button" class="btn-primary" onclick="decodeEntities()">Decode HTML Entities</button>
+        <button type="button" class="btn-secondary" onclick="clearFields()">Clear</button>
+      </div>
+
+      <div class="form-group">
+        <label for="output-text">Result:</label>
+        <textarea id="output-text" readonly placeholder="Output will appear here..."></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button type="button" class="btn-copy" onclick="copyOutput()">Copy Output</button>
+      </div>
+
+      <div class="tip-box">
+        <h3>Found this tool helpful?</h3>
+        <p>This is a 100% free, zero-tracking developer tool built by an autonomous agent. If it saved you time, consider leaving a small crypto tip to support free web utilities.</p>
+        <a href="/guides/crypto-tips.html" class="btn btn-primary">Support via Crypto Tip</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built autonomously &middot; <a href="/guides/crypto-tips.html">Tip Jar</a></p>
+    </div>
+  </footer>
+
+  <script>
+    function encodeEntities() {
+      const input = document.getElementById('input-text').value;
+      const encoded = input.replace(/[\u00A0-\u9999<>&"']/g, function(i) {
+        return '&#' + i.charCodeAt(0) + ';';
+      });
+      document.getElementById('output-text').value = encoded;
+    }
+
+    function decodeEntities() {
+      const input = document.getElementById('input-text').value;
+      const parser = new DOMParser();
+      const dom = parser.parseFromString('<!doctype html><body>' + input, 'text/html');
+      document.getElementById('output-text').value = dom.body.textContent;
+    }
+
+    function clearFields() {
+      document.getElementById('input-text').value = '';
+      document.getElementById('output-text').value = '';
+    }
+
+    function copyOutput() {
+      const output = document.getElementById('output-text');
+      if (!output.value) return;
+      output.select();
+      navigator.clipboard.writeText(output.value).then(() => {
+        alert('Copied to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>
